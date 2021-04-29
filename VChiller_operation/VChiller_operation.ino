@@ -14,9 +14,6 @@
 //#define encoderA 18
 //#define encoderB 19
 
-
-//int ThermistorPinC = A0;
-//int ThermistorPinH = A1;
 int PressureSens = A0;
 int PotPin = A2;
 int Vpot, Vpres;
@@ -88,7 +85,7 @@ void loop() {
     Triggerm == 1;
     
     Vpres = analogRead(PressureSens);
-    pressure = mapfloat(Vpres, 102.4, 921.6, 0, 100) + 1;
+    pressure = mapfloat(Vpres, 102.4, 921.6, 0, 100) + 2;
     
     mTime = millis();
     Serial.print("Cold Temperature: ");
@@ -152,12 +149,12 @@ void loop() {
     digitalWrite(Fan2, HIGH);
     if(Tc >set_T){
       digitalWrite(ACPump, LOW);
-      if(pressure<25){
-        digitalWrite(Vac_pump, LOW);
-      }
-      else{
-        digitalWrite(Vac_pump, HIGH); 
-      }
+//      if(pressure<25){
+      digitalWrite(Vac_pump, LOW);
+//      }
+//      else{
+//        digitalWrite(Vac_pump, HIGH); 
+//      }
       digitalWrite(DCPump, LOW);
 
       if(TriggerS==0){
@@ -204,41 +201,10 @@ void loop() {
       digitalWrite(Fan2, HIGH);
     }
   }
-//  delay(500);
 }
-//
-//float temp_calc(int V){
-//  float R1 = 10000;
-//  float logR2, R2, temp;
-//  float c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
-//
-//  R2 = R1 * (1023.0 / (float)V - 1.0);
-//  logR2 = log(R2);
-//  temp = (1.0 / (c1 + c2*logR2 + c3*logR2*logR2*logR2));
-//  temp = temp - 273.15;
-//
-//  return temp;
-//}
+
 
 float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 {
  return (float)(x - in_min) * (out_max - out_min) / (float)(in_max - in_min) + out_min;
 }
-
-//float Encoder_setT(){
-//  aState = digitalRead(encoderA); // Reads the "current" state of the outputA
-//  if (aState != aLastState){
-//    Serial.println("Encoder working"); 
-//  }
-//  // If the previous and the current state of the outputA are different, that means a Pulse has occured
-//  if (aState != aLastState){     
-//    // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
-//    if ((digitalRead(encoderB) != aState) && (set_T > -10) ) { 
-//      set_T -= 0.5;
-//    } else if (set_T < 40) {
-//      set_T += 0.5;
-//    }
-//  } 
-//  aLastState = aState; // Updates the previous state of the outputA with the current state
-//
-//}
