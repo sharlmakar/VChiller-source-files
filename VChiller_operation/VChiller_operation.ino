@@ -11,6 +11,7 @@
 #define VC_pin 2
 #define Tc_pin 15
 #define Th_pin 17
+#define Sol_piston 18
 //#define encoderA 18
 //#define encoderB 19
 
@@ -26,7 +27,7 @@ unsigned long Time;
 unsigned long fTime;
 unsigned long sTime;
 unsigned long mTime;
-int TriggerS, Triggerf, Triggerm = 0;
+int TriggerS, Triggerf, TriggerT, TriggerSP, TriggerSolT = 0;
  
 int aState;
 int aLastState;  
@@ -46,7 +47,7 @@ void setup() {
   pinMode(Vac_pump, OUTPUT);
   pinMode(Fan1, OUTPUT);
   pinMode(DCPump, OUTPUT);
-
+  pinMode(Sol_piston, OUTPUT);
 //  pinMode (encoderA,INPUT);
 //  pinMode (encoderB,INPUT);
   
@@ -56,8 +57,8 @@ void setup() {
   digitalWrite(Vac_pump, HIGH);
   digitalWrite(Fan1, HIGH);
   digitalWrite(DCPump, HIGH);
+  digitalWrite(Sol_piston, HIGH);
 
-//  aLastState = digitalRead(encoderA);   
   lcd.begin(16, 2);
   VC_temp.begin();
   Tc_temp.begin();
@@ -66,8 +67,6 @@ void setup() {
 }
 
 void loop() {
-//  Vc = analogRead(ThermistorPinC);
-//  Vh = analogRead(ThermistorPinH);
   Vpot = analogRead(PotPin);
   
   VC_temp.requestTemperatures();
@@ -81,8 +80,8 @@ void loop() {
   
   set_T = mapfloat(Vpot, 0, 1023, -7, 25);
   
-  if(Triggerm == 0){
-    Triggerm == 1;
+  if(TriggerT == 0){
+    TriggerT == 1;
     
     Vpres = analogRead(PressureSens);
     pressure = mapfloat(Vpres, 102.4, 921.6, 0, 100) + 2;
@@ -91,15 +90,15 @@ void loop() {
     Serial.print("Cold Temperature: ");
     Serial.print(Tc);
     Serial.println(" C");
-  
+    
     Serial.print("Hot Temperature: ");
     Serial.print(Th);
     Serial.println(" C");
-  
+    
     Serial.print("Vacuum Chamber Temperature: ");
     Serial.print(VC_tempval);
     Serial.println(" C");
-  
+    
     Serial.print("Vacuum Chamber Pressure: ");
     Serial.print(pressure);
     Serial.println(" psi");
@@ -107,7 +106,7 @@ void loop() {
 
   Time = millis();
   if((Time - mTime) > 1500){
-    Triggerm = 0;
+    TriggerT = 0;
   }
   
   lcd.setCursor(0, 0);
@@ -144,19 +143,20 @@ void loop() {
     }
   }
   else if(Th<29){
+    TriggerSolT = 0;
     Triggerf = 0;
     digitalWrite(Fan1, HIGH);
     digitalWrite(Fan2, HIGH);
+    
     if(Tc >set_T){
       digitalWrite(ACPump, LOW);
-//      if(pressure<25){
-      digitalWrite(Vac_pump, LOW);
-//      }
-//      else{
-//        digitalWrite(Vac_pump, HIGH); 
-//      }
       digitalWrite(DCPump, LOW);
-
+      if(pressure<25){
+        digitalWrite(Vac_pump, LOW);
+      }
+      else{
+        digitalWrite(Vac_pump, HIGH); 
+      }
       if(TriggerS==0){
         TriggerS=1;
         if(Tc<10){
@@ -189,20 +189,19 @@ void loop() {
       }
     }
     else if(Tc<(set_T-0.5)){
+      if(TriggerSolT == 0){
+        digitalWrite(Solenoid, LOW);
+        delay(5000);
+        digitalWrite(Solenoid, HIGH);
+      }
+      TriggerSolT = 1;
       digitalWrite(ACPump, HIGH);
       digitalWrite(Vac_pump, HIGH);
       digitalWrite(DCPump, HIGH);
-      digitalWrite(Solenoid, HIGH);
-    }
-    if(Th>30){
-      digitalWrite(Fan2, LOW);
-    }
-    else if(Th<29){
-      digitalWrite(Fan2, HIGH);
+      digitalWrite(Sol_piston, HIGH);
     }
   }
 }
-
 
 float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 {
