@@ -3,20 +3,18 @@
 #include <DallasTemperature.h>
 
 #define ACPump 7
+#define Fan1 19
 #define Fan2 6
+
 #define Solenoid 5
 #define Vac_pump 4
-#define Fan1 3
 #define DCPump 14
 #define VC_pin 2
 #define Tc_pin 15
 #define Th_pin 17
-#define Sol_piston 18
-//#define encoderA 18
-//#define encoderB 19
 
 int PressureSens = A0;
-int PotPin = A2;
+int PotPin = A1;
 int Vpot, Vpres;
 
 float set_T = 1.0;  //Set temp for triggering relays
@@ -27,7 +25,7 @@ unsigned long Time;
 unsigned long fTime;
 unsigned long sTime;
 unsigned long mTime;
-int TriggerS, Triggerf, TriggerT, TriggerSP, TriggerSolT = 0;
+int TriggerS, Triggerf, Triggerm = 0;
  
 int aState;
 int aLastState;  
@@ -42,22 +40,18 @@ LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 
 void setup() {
   pinMode(ACPump, OUTPUT);
+  pinMode(Fan1, OUTPUT);
   pinMode(Fan2, OUTPUT);
   pinMode(Solenoid, OUTPUT);
   pinMode(Vac_pump, OUTPUT);
-  pinMode(Fan1, OUTPUT);
   pinMode(DCPump, OUTPUT);
-  pinMode(Sol_piston, OUTPUT);
-//  pinMode (encoderA,INPUT);
-//  pinMode (encoderB,INPUT);
   
   digitalWrite(ACPump, HIGH);
+  digitalWrite(Fan1, HIGH);
   digitalWrite(Fan2, HIGH);
   digitalWrite(Solenoid, HIGH);
   digitalWrite(Vac_pump, HIGH);
-  digitalWrite(Fan1, HIGH);
   digitalWrite(DCPump, HIGH);
-  digitalWrite(Sol_piston, HIGH);
 
   lcd.begin(16, 2);
   VC_temp.begin();
@@ -78,27 +72,27 @@ void loop() {
   Th_temp.requestTemperatures();
   Th = Th_temp.getTempCByIndex(0);
   
-  set_T = mapfloat(Vpot, 0, 1023, -7, 25);
+  set_T = mapfloat(Vpot, 1023, 0, -5, 10);
   
-  if(TriggerT == 0){
-    TriggerT == 1;
+  if(Triggerm == 0){
+    Triggerm == 1;
     
     Vpres = analogRead(PressureSens);
-    pressure = mapfloat(Vpres, 102.4, 921.6, 0, 100) + 2;
+    pressure = mapfloat(Vpres, 102.4, 921.6, 0, 100) + 3;
     
     mTime = millis();
     Serial.print("Cold Temperature: ");
     Serial.print(Tc);
     Serial.println(" C");
-    
+  
     Serial.print("Hot Temperature: ");
     Serial.print(Th);
     Serial.println(" C");
-    
-    Serial.print("Vacuum Chamber Temperature: ");
-    Serial.print(VC_tempval);
+  
+    Serial.print("Set Temperature: ");
+    Serial.print(set_T);
     Serial.println(" C");
-    
+  
     Serial.print("Vacuum Chamber Pressure: ");
     Serial.print(pressure);
     Serial.println(" psi");
@@ -106,7 +100,7 @@ void loop() {
 
   Time = millis();
   if((Time - mTime) > 1500){
-    TriggerT = 0;
+    Triggerm = 0;
   }
   
   lcd.setCursor(0, 0);
@@ -119,89 +113,88 @@ void loop() {
   lcd.print(set_T, 1);   
   lcd.print(" C");
   
-  if(Th>30){
-    if(Triggerf==0){
-      Triggerf = 1;
-      fTime = millis();
-    }
-    digitalWrite(ACPump, HIGH);
-    digitalWrite(Vac_pump, HIGH);
-    digitalWrite(DCPump, HIGH);
-    digitalWrite(Solenoid,HIGH);
-    Time = millis();
-    if((Time-fTime)<600000){
+  Triggerf = 0;
+  if(Tc > set_T){
+    if(Th>30){
       digitalWrite(Fan1, LOW);
       if(Th>33){
         digitalWrite(Fan2, LOW);
       }
+      else if(Th<31){
+        digitalWrite(Fan2, HIGH);
+      }
     }
-    else{
+    else if(Th<28){
       digitalWrite(Fan1, HIGH);
       digitalWrite(Fan2, HIGH);
-      Serial.print("Error: water tank is too hot for unknown reason.");
-      delay(1000);
+    }
+    digitalWrite(ACPump, LOW);
+    if(pressure<25){
+      digitalWrite(Vac_pump, LOW);
+    }
+    else{
+      digitalWrite(Vac_pump, HIGH); 
+    }
+    digitalWrite(DCPump, LOW);
+
+    if(TriggerS==0){
+      TriggerS=1;
+      if(Tc<10){
+        digitalWrite(Solenoid,LOW);
+        delay(4000);
+        digitalWrite(Solenoid,HIGH);
+      }
+      else{
+        digitalWrite(Solenoid,LOW);
+        delay(4000);
+        digitalWrite(Solenoid,HIGH);
+      }
+      sTime = millis();
+    }
+    Time = millis();
+    if(Tc>15){
+      if((Time-sTime)>60000){
+//        lcd.begin(16, 2);
+        TriggerS = 0;
+      }
+    }
+    else if((Tc<15) && (Tc>10)){
+      if((Time-sTime)>120000){
+//        lcd.begin(16, 2);
+        TriggerS = 0;
+      }
+    }
+    else{
+      if((Time-sTime)>120000){
+        TriggerS = 0;
+      }
     }
   }
-  else if(Th<29){
-    TriggerSolT = 0;
-    Triggerf = 0;
-    digitalWrite(Fan1, HIGH);
-    digitalWrite(Fan2, HIGH);
-    
-    if(Tc >set_T){
+  else if(Tc<(set_T-0.5)){
+    if(Th>30){
       digitalWrite(ACPump, LOW);
-      digitalWrite(DCPump, LOW);
-      if(pressure<25){
-        digitalWrite(Vac_pump, LOW);
-      }
-      else{
-        digitalWrite(Vac_pump, HIGH); 
-      }
-      if(TriggerS==0){
-        TriggerS=1;
-        if(Tc<10){
-          digitalWrite(Solenoid,LOW);
-          delay(1000);
-          digitalWrite(Solenoid,HIGH);
-        }
-        else{
-          digitalWrite(Solenoid,LOW);
-          delay(4000);
-          digitalWrite(Solenoid,HIGH);
-        }
-        sTime = millis();
-      }
-      Time = millis();
-      if(Tc>15){
-        if((Time-sTime)>60000){
-          TriggerS = 0;
-        }
-      }
-      else if((Tc<15) && (Tc>10)){
-        if((Time-sTime)>120000){
-          TriggerS = 0;
-        }
-      }
-      else{
-        if((Time-sTime)>5000){
-          TriggerS = 0;
-        }
-      }
+      digitalWrite(Fan1, LOW);
+      if(Th>33){
+        digitalWrite(Fan2, LOW);
+      }  
     }
-    else if(Tc<(set_T-0.5)){
-      if(TriggerSolT == 0){
-        digitalWrite(Solenoid, LOW);
-        delay(5000);
-        digitalWrite(Solenoid, HIGH);
-      }
-      TriggerSolT = 1;
+    else if(Th<28){
+      digitalWrite(Fan1, HIGH);
+      digitalWrite(Fan2, HIGH);
       digitalWrite(ACPump, HIGH);
-      digitalWrite(Vac_pump, HIGH);
-      digitalWrite(DCPump, HIGH);
-      digitalWrite(Sol_piston, HIGH);
+    }
+    digitalWrite(Vac_pump, HIGH);
+    digitalWrite(DCPump, HIGH);
+    if(TriggerS == 1){
+      TriggerS = 0;
+      digitalWrite(Solenoid,LOW);
+      delay(5000);
+      digitalWrite(Solenoid,HIGH);
     }
   }
 }
+
+
 
 float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 {
