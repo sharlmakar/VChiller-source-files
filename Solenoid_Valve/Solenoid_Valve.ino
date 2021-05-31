@@ -1,4 +1,4 @@
-#define Solenoid 4
+#define Solenoid 18
 
 void setup() {
   pinMode(Solenoid, OUTPUT);

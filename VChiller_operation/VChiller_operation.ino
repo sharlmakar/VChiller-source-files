@@ -9,6 +9,7 @@
 #define Solenoid 5
 #define Vac_pump 4
 #define DCPump 14
+#define DCMotor 18
 #define VC_pin 2
 #define Tc_pin 15
 #define Th_pin 17
@@ -45,6 +46,7 @@ void setup() {
   pinMode(Solenoid, OUTPUT);
   pinMode(Vac_pump, OUTPUT);
   pinMode(DCPump, OUTPUT);
+  pinMode(DCMotor, OUTPUT);
   
   digitalWrite(ACPump, HIGH);
   digitalWrite(Fan1, HIGH);
@@ -72,7 +74,7 @@ void loop() {
   Th_temp.requestTemperatures();
   Th = Th_temp.getTempCByIndex(0);
   
-  set_T = mapfloat(Vpot, 1023, 0, -5, 10);
+  set_T = mapfloat(Vpot, 1023, 0, -1, 10);
   
   if(Triggerm == 0){
     Triggerm == 1;
@@ -114,7 +116,7 @@ void loop() {
   lcd.print(" C");
   
   Triggerf = 0;
-  if(Tc > set_T){
+  if(Tc > (set_T + 0.5)){
     if(Th>30){
       digitalWrite(Fan1, LOW);
       if(Th>33){
@@ -129,6 +131,7 @@ void loop() {
       digitalWrite(Fan2, HIGH);
     }
     digitalWrite(ACPump, LOW);
+    digitalWrite(DCMotor, LOW);
     if(pressure<25){
       digitalWrite(Vac_pump, LOW);
     }
@@ -170,7 +173,7 @@ void loop() {
       }
     }
   }
-  else if(Tc<(set_T-0.5)){
+  else if(Tc<set_T){
     if(Th>30){
       digitalWrite(ACPump, LOW);
       digitalWrite(Fan1, LOW);
@@ -184,6 +187,7 @@ void loop() {
       digitalWrite(ACPump, HIGH);
     }
     digitalWrite(Vac_pump, HIGH);
+    digitalWrite(DCMotor, HIGH);
     digitalWrite(DCPump, HIGH);
     if(TriggerS == 1){
       TriggerS = 0;

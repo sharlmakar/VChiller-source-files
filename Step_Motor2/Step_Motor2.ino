@@ -33,9 +33,9 @@ void loop() {
   for (int i = 0; i < stepsPerRevolution; i++) {
     // These four lines result in 1 step:
     digitalWrite(stepPin, HIGH);
-    delayMicroseconds(1200);
+    delayMicroseconds(500);
     digitalWrite(stepPin, LOW);
-    delayMicroseconds(1200);
+    delayMicroseconds(500);
   }
 
 //  delay(1000);
