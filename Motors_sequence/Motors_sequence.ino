@@ -55,7 +55,7 @@ void loop() {
 //          potValue = analogRead(A0); // Read potentiometer value
 //          Serial.println(potValue);
 //          pwmOutput = map(potValue, 0, 1023, 0 , 255); // Map the potentiometer value from 0 to 255
-          analogWrite(enA, 140); // Send PWM signal to L298N Enable pin
+          analogWrite(enA, 255); // Send PWM signal to L298N Enable pin
           Time = millis() - nowtime;
       }
       analogWrite(enA, 0); // Send PWM signal to L298N Enable pin

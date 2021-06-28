@@ -26,7 +26,8 @@ unsigned long Time;
 unsigned long fTime;
 unsigned long sTime;
 unsigned long mTime;
-int TriggerS, Triggerf, Triggerm = 0;
+unsigned long MotorTime;
+int TriggerS, Triggerf, Triggerm, TriggerMotor = 0;
  
 int aState;
 int aLastState;  
@@ -74,7 +75,7 @@ void loop() {
   Th_temp.requestTemperatures();
   Th = Th_temp.getTempCByIndex(0);
   
-  set_T = mapfloat(Vpot, 1023, 0, -1, 10);
+  set_T = mapfloat(Vpot, 1023, 0, -15, 10);
   
   if(Triggerm == 0){
     Triggerm == 1;
@@ -117,9 +118,12 @@ void loop() {
   
   Triggerf = 0;
   if(Tc > (set_T + 0.5)){
-    if(Th>30){
+    
+    TriggerMotor = 0;
+    
+    if(Th>32){
       digitalWrite(Fan1, LOW);
-      if(Th>33){
+      if(Th>36){
         digitalWrite(Fan2, LOW);
       }
       else if(Th<31){
@@ -174,21 +178,30 @@ void loop() {
     }
   }
   else if(Tc<set_T){
+    Time = millis();
     if(Th>30){
       digitalWrite(ACPump, LOW);
       digitalWrite(Fan1, LOW);
       if(Th>33){
         digitalWrite(Fan2, LOW);
-      }  
+      }
     }
     else if(Th<28){
       digitalWrite(Fan1, HIGH);
       digitalWrite(Fan2, HIGH);
       digitalWrite(ACPump, HIGH);
     }
+    if (TriggerMotor==0){
+      TriggerMotor = 1;
+      MotorTime = millis();
+      Time = millis();
+    }
+    else if((Time - MotorTime) >= 90000){
+      digitalWrite(DCPump, HIGH);
+    }
+    
     digitalWrite(Vac_pump, HIGH);
     digitalWrite(DCMotor, HIGH);
-    digitalWrite(DCPump, HIGH);
     if(TriggerS == 1){
       TriggerS = 0;
       digitalWrite(Solenoid,LOW);
