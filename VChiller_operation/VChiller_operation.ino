@@ -126,11 +126,11 @@ void loop() {
       if(Th>36){
         digitalWrite(Fan2, LOW);
       }
-      else if(Th<31){
+      else if(Th<34){
         digitalWrite(Fan2, HIGH);
       }
     }
-    else if(Th<28){
+    else if(Th<30){
       digitalWrite(Fan1, HIGH);
       digitalWrite(Fan2, HIGH);
     }
@@ -179,14 +179,14 @@ void loop() {
   }
   else if(Tc<set_T){
     Time = millis();
-    if(Th>30){
+    if(Th>32){
       digitalWrite(ACPump, LOW);
       digitalWrite(Fan1, LOW);
-      if(Th>33){
+      if(Th>36){
         digitalWrite(Fan2, LOW);
       }
     }
-    else if(Th<28){
+    else if(Th<32){
       digitalWrite(Fan1, HIGH);
       digitalWrite(Fan2, HIGH);
       digitalWrite(ACPump, HIGH);

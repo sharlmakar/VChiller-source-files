@@ -15,9 +15,9 @@ void loop() {
   digitalWrite(in1, LOW);
   digitalWrite(in2, HIGH);
   analogWrite(enA, 255); // Send PWM signal to L298N Enable pin
-  delay(10000);
+  delay(5000);
   digitalWrite(in1, HIGH);
   digitalWrite(in2, LOW);
-  delay(10000);
+  delay(5000);
 
 }

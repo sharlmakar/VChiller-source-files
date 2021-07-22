@@ -1,0 +1,9 @@
+V-Chiller wire numbering to devices map:
+
+3. Step motor shaker
+4. Fans 1
+5. AC pump
+6. Solenoid valve
+7. DC pump
+8. Fans 2
+9. Vacuum pump
