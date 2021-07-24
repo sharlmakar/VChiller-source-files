@@ -10,7 +10,6 @@
 #define Vac_pump 4
 #define DCPump 14
 #define DCMotor 18
-#define VC_pin 2
 #define Tc_pin 15
 #define Th_pin 17
 
@@ -20,7 +19,6 @@ int Vpot, Vpres;
 
 float set_T = 1.0;  //Set temp for triggering relays
 float pressure = 0; 
-float Tc, Th, VC_tempval; //Temp hot, cold and vacuum chamber
 
 unsigned long Time;
 unsigned long fTime;
@@ -28,16 +26,14 @@ unsigned long sTime;
 unsigned long mTime;
 unsigned long MotorTime;
 int TriggerS, Triggerf, Triggerm, TriggerMotor = 0;
- 
-int aState;
-int aLastState;  
- 
-OneWire oneWire(VC_pin);
+
+float Tc, Th; //Temp hot and cold
+
 OneWire oneWire1(Tc_pin);
 OneWire oneWire2(Th_pin);
-DallasTemperature VC_temp(&oneWire);
 DallasTemperature Tc_temp(&oneWire1);
 DallasTemperature Th_temp(&oneWire2);
+
 LiquidCrystal lcd(13, 12, 11, 10, 9, 8);
 
 void setup() {
@@ -57,7 +53,6 @@ void setup() {
   digitalWrite(DCPump, HIGH);
 
   lcd.begin(16, 2);
-  VC_temp.begin();
   Tc_temp.begin();
   Th_temp.begin();
   Serial.begin(9600);
@@ -65,15 +60,13 @@ void setup() {
 
 void loop() {
   Vpot = analogRead(PotPin);
+
+//  Tc_temp.requestTemperatures();
+  Tc = GetTemp(Tc_temp, Tc);//Tc_temp.getTempCByIndex(0);
   
-  VC_temp.requestTemperatures();
-  VC_tempval = VC_temp.getTempCByIndex(0);
 
-  Tc_temp.requestTemperatures();
-  Tc = Tc_temp.getTempCByIndex(0);
-
-  Th_temp.requestTemperatures();
-  Th = Th_temp.getTempCByIndex(0);
+//  Th_temp.requestTemperatures();
+  Th = GetTemp(Th_temp, Th);//Th_temp.getTempCByIndex(0);
   
   set_T = mapfloat(Vpot, 1023, 0, -15, 10);
   
@@ -95,7 +88,7 @@ void loop() {
     Serial.print("Set Temperature: ");
     Serial.print(set_T);
     Serial.println(" C");
-  
+    
     Serial.print("Vacuum Chamber Pressure: ");
     Serial.print(pressure);
     Serial.println(" psi");
@@ -136,7 +129,7 @@ void loop() {
     }
     digitalWrite(ACPump, LOW);
     digitalWrite(DCMotor, LOW);
-    if(pressure<25){
+    if(pressure<35){
       digitalWrite(Vac_pump, LOW);
     }
     else{
@@ -212,6 +205,21 @@ void loop() {
 }
 
 
+float GetTemp(DallasTemperature temp, float reading0){
+  
+  float reading1,reading2 = 0;
+  temp.requestTemperatures();
+  reading1 = temp.getTempCByIndex(0);
+  delay(50);
+  temp.requestTemperatures();
+  reading2 = temp.getTempCByIndex(0);
+  if (floor(reading1) == floor(reading2)){
+    return reading2;
+  }
+  else{
+    return reading0;
+  }
+}
 
 float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 {
