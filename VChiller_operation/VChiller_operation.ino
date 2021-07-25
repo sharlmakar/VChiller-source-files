@@ -141,12 +141,12 @@ void loop() {
       TriggerS=1;
       if(Tc<10){
         digitalWrite(Solenoid,LOW);
-        delay(4000);
+        delay(5000);
         digitalWrite(Solenoid,HIGH);
       }
       else{
         digitalWrite(Solenoid,LOW);
-        delay(4000);
+        delay(5000);
         digitalWrite(Solenoid,HIGH);
       }
       sTime = millis();
@@ -210,7 +210,7 @@ float GetTemp(DallasTemperature temp, float reading0){
   float reading1,reading2 = 0;
   temp.requestTemperatures();
   reading1 = temp.getTempCByIndex(0);
-  delay(50);
+  delay(10);
   temp.requestTemperatures();
   reading2 = temp.getTempCByIndex(0);
   if (floor(reading1) == floor(reading2)){
