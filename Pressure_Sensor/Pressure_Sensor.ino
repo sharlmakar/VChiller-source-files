@@ -20,12 +20,12 @@ void loop() //loop routine runs over and over again forever
   Serial.print("Raw value: ");
   Serial.println(pressureValue);
   //pressureValue = ((pressureValue-pressureZero)*pressuretransducermaxPSI)/(pressureMax-pressureZero); //conversion equation to convert analog reading to psi
-  pressureValue = mapfloat(pressureValue, 102.4, 921.6, 0, pressuretransducermaxPSI) + 1;
-  bar = (pressureValue/14.504);
+  pressureValue = mapfloat(pressureValue,  102.4, 921.6, 0, 12);
+//  bar = (pressureValue/14.504);
   Serial.print(pressureValue, 1); //prints value from previous line to serial
-  Serial.print("psi "); //prints label to serial
-  Serial.print(bar);
-  Serial.println("bar");
+  Serial.println("bar"); //prints label to serial
+//  Serial.print(bar);
+//  Serial.println("bar");
   delay(sensorreadDelay); //delay in milliseconds between read values
 }
 

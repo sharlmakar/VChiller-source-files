@@ -1,4 +1,4 @@
-#define pump 3
+#define pump 8
 void setup() {
   pinMode(pump, OUTPUT);
   Serial.begin(9600);

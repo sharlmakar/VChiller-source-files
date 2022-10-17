@@ -1,8 +1,8 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-#define ONE_WIRE_BUS 15
-#define ONE_WIRE_BUS1 17
+#define ONE_WIRE_BUS 2
+#define ONE_WIRE_BUS1 14
 
 OneWire oneWire(ONE_WIRE_BUS);
 OneWire oneWire1(ONE_WIRE_BUS1);

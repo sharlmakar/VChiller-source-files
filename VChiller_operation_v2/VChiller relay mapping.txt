@@ -1,0 +1,11 @@
+Relay Board 1:
+
+In1: Vac Pump
+In2: Solendoid
+In3: Fan1
+In4: Fan2
+
+Relay board 2:
+
+In4: DCPump
+In3: ACPump

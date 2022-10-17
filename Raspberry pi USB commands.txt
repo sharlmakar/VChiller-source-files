@@ -1,0 +1,2 @@
+sudo uhubctl -l 2 -a 0
+sudo uhubctl -l 2 -a 1

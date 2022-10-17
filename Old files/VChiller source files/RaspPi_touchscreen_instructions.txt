@@ -1,0 +1,23 @@
+Instructions for adjusting touchscreen on Raspberry pi:
+1. Run the following to use the LCD:
+
+sudo rm -rf LCD-show
+git clone https://github.com/goodtft/LCD-show.git
+chmod -R 755 LCD-show
+cd LCD-show/
+sudo ./LCD35-show
+
+Don't forget to disconnect hdmi cable to see it displaying on screen!
+
+2. Run the following to be in the right directory:
+
+cd /usr/share/X11/xorg.conf.d/
+
+3. Edit the config file by running the following command:
+
+sudo nano 10-evdev.conf
+
+4.Add the following lines to the section that has (Identifier "evdev touchscreen catchall") to adjust the touchscreen orientation:
+
+Option "TransformationMatrix" "0 -1 1 1 0 0 0 0 1"
+Option  "InvertX"       "1"

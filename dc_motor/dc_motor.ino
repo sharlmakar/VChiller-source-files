@@ -1,9 +1,9 @@
 /*  Arduino DC Motor Control - PWM | H-Bridge | L298N  -  Example 01
     by Dejan Nedelkovski, www.HowToMechatronics.com
 */
-#define enA 5
-#define in1 6
-#define in2 7
+#define enA 6
+#define in1 5
+#define in2 4
 #define button 4
 int rotDirection = 0;
 int pressed = false;
