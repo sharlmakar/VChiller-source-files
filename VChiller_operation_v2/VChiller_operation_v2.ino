@@ -200,13 +200,25 @@ void Solenoid_op(){
     Sol_open_time = millis();
   }
 
-  else if(((Time - Sol_open_time) > 5000) && (TriggerSol_open == 0)){
+  else if(((Time - Sol_open_time) > 10000) && (TriggerSol_open == 0)){
     digitalWrite(Solenoid, LOW);
     Sol_interv_time = millis();
     TriggerSol_open = 1;
   }
 
-  else if((Time - Sol_interv_time) > 60000){
+  else if(((Time - Sol_interv_time) > 120000) && Tcold > 25){
+    TriggerSol_interv = 0;
+  }
+
+  else if(((Time - Sol_interv_time) > 150000) && Tcold > 15 && Tcold <= 25){
+    TriggerSol_interv = 0;
+  }
+
+  else if(((Time - Sol_interv_time) > 180000) && Tcold > 10 && Tcold <= 15){
+    TriggerSol_interv = 0;
+  }
+
+  else if(((Time - Sol_interv_time) > 240000) && Tcold <= 10){
     TriggerSol_interv = 0;
   }
 }
