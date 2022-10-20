@@ -113,22 +113,35 @@ void loop(){
     }
 
     else if(T_Water<set_T){
-      TriggerSol_interv = 0;
       
-      if(Trigger_solenoid == 0){
-        lcd_print();
-        Trigger_solenoid = 1;
-        digitalWrite(Solenoid, HIGH);
-        delay(2000);
-        digitalWrite(Vac_pump, LOW);
-        delay(7000);
-        digitalWrite(Solenoid, LOW);
-
-        digitalWrite(Fan1, LOW);
+      lcd_print();
+       
+      if((T_VC > -2)){
+        Trigger_solenoid = 0;
+        digitalWrite(DCPump, LOW);
+        digitalWrite(Vac_pump, HIGH);
+        digitalWrite(Fan1, HIGH);
+        digitalWrite(AirBlow, LOW);
+        Solenoid_op();
         
-        if(T_VC > -2){
+        if(T_Rad>35){
+          digitalWrite(Fan2, HIGH);
+        }
+        
+        else if(T_Rad<33){
+          digitalWrite(Fan2, LOW);
+        }
+      }
+
+      else if(T_VC <= -4){
+        if(T_cold_stor > -2){
+          Trigger_solenoid = 0;
+          digitalWrite(DCPump, LOW);
           digitalWrite(Vac_pump, HIGH);
           digitalWrite(Fan1, HIGH);
+          digitalWrite(AirBlow, HIGH);
+          Solenoid_op();
+          
           if(T_Rad>35){
             digitalWrite(Fan2, HIGH);
           }
@@ -137,20 +150,23 @@ void loop(){
             digitalWrite(Fan2, LOW);
           }
         }
-
-        else if(T_VC <= -4){
-          digitalWrite(Vac_pump, LOW);
+  
+        else if(T_cold_stor <= -4){
+          TriggerSol_interv = 0;
+          digitalWrite(AirBlow, LOW);
+          if(Trigger_solenoid == 0){
+            Trigger_solenoid = 1;
+            digitalWrite(Solenoid, HIGH);
+            delay(2000);
+            digitalWrite(Vac_pump, LOW);
+            delay(7000);
+            digitalWrite(Solenoid, LOW);
+          }
+          digitalWrite(DCPump, LOW);
           digitalWrite(Fan1, LOW);
           digitalWrite(Fan2, LOW);
-          
-          if(T_cold_stor > -2){
-            digitalWrite(AirBlow, HIGH);
-          }
-
-          else if(T_cold_stor >= -2){
-            digitalWrite(AirBlow, LOW);
-          } 
-        }
+     
+        } 
       }
     }
   }
@@ -164,6 +180,7 @@ void loop(){
     delay(10000);
     digitalWrite(Solenoid, LOW);
     digitalWrite(DCPump, LOW);
+    digitalWrite(AirBlow, LOW);
     digitalWrite(Fan1, HIGH);
     digitalWrite(Fan2, HIGH);
     
