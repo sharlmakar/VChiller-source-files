@@ -117,19 +117,16 @@ void loop() {
   if(Trigger_hot == 0){
     if(Tcold > (set_T + 2)){
       Trigger_solenoid = 0;
-      if(Thot>32){
-        digitalWrite(Fan1, HIGH);
-        if(Thot>36){
-          digitalWrite(Fan2, HIGH);
-        }
-        else if(Thot<34){
-          digitalWrite(Fan2, LOW);
-        }
-      else if(Thot<30){
-        digitalWrite(Fan1, LOW);
+      
+      if(Thot>35){
+        digitalWrite(Fan2, HIGH);
+      }
+      
+      else if(Thot<33){
         digitalWrite(Fan2, LOW);
       }
-     }
+      
+      digitalWrite(Fan1, HIGH);
       digitalWrite(DCPump, HIGH);
       digitalWrite(Vac_pump, HIGH);
       Solenoid_op();
@@ -265,5 +262,5 @@ void lcd_print(){
 //  lcd.setCursor(0, 3);
 //  lcd.print("Ref temp = ");
 //  lcd.print(Trefrig);   
-//  lcd.print(" C");
+//  lcd.print(" C");find
 }
