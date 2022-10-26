@@ -14,6 +14,7 @@
 
 #define Temp_ColWater_p 2
 #define Temp_Refrig_p 14
+#define Temp_cold_Refrig_p 15
 
 int PressureSens = A3;
 int PotPin = A4;
@@ -21,7 +22,7 @@ int Vpot, Vpres;
 
 float set_T = -10;
 float pressure = 0;
-float Tcold, Thot = 5; //Temp cold water and hot refrigerant
+float Tcold, Thot, Trefrig = 5; //Temp cold water and hot refrigerant
 
 unsigned long Time;
 unsigned long Sol_open_time;
@@ -36,8 +37,11 @@ int throttle = 51;
 
 OneWire oneWire1(Temp_ColWater_p);
 OneWire oneWire2(Temp_Refrig_p);
+OneWire oneWire3(Temp_cold_Refrig_p);
 DallasTemperature Temp_ColWater(&oneWire1);
 DallasTemperature Temp_Refrig(&oneWire2);
+DallasTemperature Temp_cold_Refrig(&oneWire3);
+
 
 LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
 
@@ -66,6 +70,7 @@ void setup() {
 
   Tcold = GetTemp(Temp_ColWater, Tcold);
   Thot = GetTemp(Temp_Refrig, Thot);
+  Trefrig = GetTemp(Temp_cold_Refrig, Trefrig);
 
   print_time = millis();
   lcd_time = millis();
@@ -83,6 +88,7 @@ void loop() {
   set_T = mapfloat(Vpot, 1023, 0, -10, 20);
   Tcold = GetTemp(Temp_ColWater, Tcold);
   Thot = GetTemp(Temp_Refrig, Thot);
+  Trefrig = GetTemp(Temp_cold_Refrig, Trefrig);
 
   if((Time-print_time)>2000){
     print_time = millis();
@@ -97,6 +103,10 @@ void loop() {
   
     Serial.print("Set Temperature: ");
     Serial.print(set_T);
+    Serial.println(" C");
+
+    Serial.print("Cold refrigerant Temperature: ");
+    Serial.print(Trefrig);
     Serial.println(" C");
 
     Serial.println();
@@ -259,8 +269,9 @@ void lcd_print(){
   lcd.print(Thot);
   lcd.print(" C");
 
-//  lcd.setCursor(0, 3);
-//  lcd.print("Ref temp = ");
-//  lcd.print(Trefrig);   
-//  lcd.print(" C");find
+  lcd.setCursor(0, 3);
+  lcd.print("Ref temp = ");
+  lcd.print(Trefrig);   
+  lcd.print(" C");
+  
 }
