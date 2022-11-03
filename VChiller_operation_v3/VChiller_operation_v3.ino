@@ -1,3 +1,6 @@
+#include <OneWire.h>
+#include <DallasTemperature.h> //For temperature sensors
+#include <Wire.h> // For I2C
 #include <LiquidCrystal_I2C.h> //I2C LCD library
 
 #define Vac_pump 13
@@ -7,11 +10,12 @@
 #define DCPump 9
 #define AirBlow 8
 
-int Temp_VC_p = A0;
-int Temp_Water_p = A1;
-int Temp_Rad_p = A2;
-int Temp_cold_stor_p = A3;
-int PotPin = A6;
+#define Temp_VC_p 7
+#define Temp_Water_p 6
+#define Temp_Rad_p 5
+#define Temp_cold_stor_p 4
+
+int PotPin = A0;
 
 float T_VC, T_Water, T_Rad, T_cold_stor = 10;
 float Vpot = 0;
@@ -23,6 +27,15 @@ unsigned long Sol_interv_time;
 unsigned long print_time, lcd_time;
 int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB  = 0;
 int TriggerSol_open = 1;
+
+OneWire oneWire1(Temp_VC_p);
+OneWire oneWire2(Temp_Water_p );
+OneWire oneWire3(Temp_Rad_p );
+OneWire oneWire4(Temp_cold_stor_p);
+DallasTemperature Temp_VC(&oneWire1);
+DallasTemperature Temp_Water(&oneWire2);
+DallasTemperature Temp_Rad(&oneWire3);
+DallasTemperature Temp_cold_stor(&oneWire4);
 
 LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
 
@@ -61,6 +74,7 @@ void setup() {
 
 void loop(){
 
+  Time = millis();
   Readings(); //Readings done at the beginning of every loop
 
   if((Time-print_time)>2000){ //Print readings to serial monitor every 2sec
@@ -190,13 +204,18 @@ void loop(){
 
 void Readings(){ //Cycle readings
   
-  T_VC = temp_read_ntc(Temp_VC_p);    //initial sensor readings
-  T_Water = temp_read_ntc(Temp_Water_p);
-  T_Rad = temp_read_ntc(Temp_Rad_p);
-  T_cold_stor = temp_read_ntc(Temp_cold_stor_p);
+//  T_VC = temp_read_ntc(Temp_VC_p);    //initial sensor readings
+//  T_Water = temp_read_ntc(Temp_Water_p);
+//  T_Rad = temp_read_ntc(Temp_Rad_p);
+//  T_cold_stor = temp_read_ntc(Temp_cold_stor_p);
   
   Vpot = analogRead(PotPin); //Set temperature inital reading
   set_T = mapfloat(Vpot, 1023, 0, -10, 20);
+
+  T_VC = GetTemp(Temp_VC, T_VC);    //Temperature sensor readings
+  T_Water = GetTemp(Temp_Water, T_Water);
+  T_Rad = GetTemp(Temp_Rad, T_Rad);
+  T_cold_stor = GetTemp(Temp_cold_stor, T_cold_stor);
   
 }
 
@@ -267,13 +286,36 @@ void lcd_print(){
   lcd.print(T_Water);   
   lcd.print(" C");
 
-//  lcd.setCursor(0, 1);
-//  lcd.print("Set temp = ");
-//  lcd.print(set_T);   
-//  lcd.print(" C");
-
   lcd.setCursor(0, 1);
+  lcd.print("Set temp = ");
+  lcd.print(set_T);   
+  lcd.print(" C");
+
+  lcd.setCursor(0, 2);
   lcd.print("Hot temp = ");
   lcd.print(T_Rad);
   lcd.print(" C");
+
+  lcd.setCursor(0, 3);
+  lcd.print("Refrig temp = ");
+  lcd.print(T_VC);
+  lcd.print(" C");
+}
+
+float GetTemp(DallasTemperature temp, float reading0){
+  
+  float reading1,reading2 = 0;
+  temp.requestTemperatures();
+  delay(25);
+  reading1 = temp.getTempCByIndex(0);
+  delay(10);
+  temp.requestTemperatures();
+  delay(25);
+  reading2 = temp.getTempCByIndex(0);
+  if (floor(reading1) == floor(reading2)){
+    return reading2;
+  }
+  else{
+    return reading0;
+  }
 }
