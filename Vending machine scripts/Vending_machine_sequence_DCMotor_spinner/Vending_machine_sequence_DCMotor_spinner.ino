@@ -2,18 +2,21 @@
 #include <Servo.h>
 #include <Adafruit_MLX90614.h>
 
-#define Winch 2
-#define Winch_dir 3
-#define spin_PWM 4
-#define spin_DIR 5
-#define ProxIN_warm 6
-#define ProxIN_cold 7
-#define DCPump 8
-#define servo_pin1 9
-#define servo_pin2 10
-#define limit_switch_up 11
-#define limit_switch_down 12
-#define Winch_approv A2
+ 
+//#define Winch_button_down 4
+#define ProxIN_warm 2
+#define ProxIN_cold 3
+#define spin_RIGHT 5
+#define spin_LEFT 6
+#define servo_pin1 4
+#define servo_pin2 7
+#define Winch 8
+#define Winch_dir 9
+#define limit_switch_up 10
+#define limit_switch_down 11
+#define Winch_approv 12
+
+#define DCPump A3
 
 #define Temp_pin A0
 
@@ -43,12 +46,13 @@ void setup() {
   pinMode(Winch_dir, OUTPUT);
   pinMode(Winch, OUTPUT);
   pinMode(Winch_approv, OUTPUT);
-  pinMode(spin_DIR,OUTPUT);
-
-  pinMode(DCPump,OUTPUT);
-  digitalWrite(DCPump, HIGH);
+//  pinMode(spin_DIR,OUTPUT);
 
   digitalWrite(Winch_approv, LOW);
+  
+  pinMode(DCPump,OUTPUT);
+  digitalWrite(DCPump, HIGH);
+  
   servo_motor1.attach(servo_pin1);
   servo_motor2.attach(servo_pin2);
 
@@ -57,8 +61,8 @@ void setup() {
   delay(5000);
   servo_motor2.write(0);  //Spinner servo returns to open positionn to wait for next bottle
   
-  analogWrite(spin_PWM,0);
-  digitalWrite(spin_DIR, LOW);
+  analogWrite(spin_RIGHT, 0);
+  analogWrite(spin_LEFT, 0);
   
   Serial.begin(9600);
 
@@ -73,7 +77,7 @@ void loop() {
     case 1: digitalWrite(Winch_approv, HIGH);
             servo_motor1.write(180);//drops bottle into spinner
             break;
-    case 2: Winch_approv(Winch_approv,HIGH);
+    case 2: digitalWrite(Winch_approv, LOW);
             servo_motor1.write(0); //returns to original position
             break;
     case 3: digitalWrite(Winch_approv, LOW);
@@ -86,7 +90,9 @@ void loop() {
             Spin_shake_sequence(); //DC motor spins bottle
             break;        
     case 6: digitalWrite(Winch_approv, LOW);
-            analogWrite(spin_PWM, 0);
+            analogWrite(spin_RIGHT, 0);
+            analogWrite(spin_LEFT, 0);
+            digitalWrite(DCPump, HIGH);
             servo_motor2.write(180); //Lock on spinner drops bottle to cold storage
             break;
     case 7: digitalWrite(Winch_approv, LOW);
@@ -106,55 +112,58 @@ void case_handler(){
 
   if(rasp_com=="START"){
     temp_Step = Step;
-    temp_diff = difference;
+    temp_diff = millis() - step_time;
     Step = 8;
   }
 
-  else if(digitalRead(ProxIN_warm)==0 && digitalRead(ProxIN_cold)==1){  //drops bottle into spinner
+  else if(digitalRead(ProxIN_warm)==0 && digitalRead(ProxIN_cold)==1 && Step == 0){  //Initiate sequence
     Step = 1;
     step_time = millis();
   }
-  else if(Step == 1){ //returns to original position
+  else if(Step == 1){ //Drop bottle into spinner//Return to receive next bottle
     if(difference>2000){
       Step = 2;
       step_time = millis();
     }
   }
-  else if(Step == 2){ //spinner lock closes
+  else if(Step == 2){ //Return to receive next bottle
     if(difference>3000){
       Step = 3;
       step_time = millis();
     }
   }
-  else if(Step == 3){ //DC motor spins bottle
+  else if(Step == 3){ //Spinner lock closes
     if(difference>1000){
       Step = 4;
       spining_time = spin_time(temp_read_ntc());
+      Serial.println(spining_time);
+      Serial.println(temp_read_ntc());
       Dir_time = millis();
       step_time = millis();
     }
   }
-  else if(Step == 4){ //DC motor shakes bottle
-    if(difference>spining_time){
+  else if(Step == 4){ //DC motor spins bottle
+    Serial.println(millis() - step_time);
+    if(millis() - step_time>spining_time){
       Step = 5;
       step_time = millis();
       Dir_time = millis();
     }
   }
   else if(Step == 5){
-    if(difference>30000){ //Spinner shakes bottle to dry it
+    if(difference>30000){ //DC motor shakes bottle
       Step = 6;
       step_time = millis();
     }
   }
-  else if(Step == 6){
-    if(difference>2000){  //Lock on spinner drops bottle to cold storage
+  else if(Step == 6){ //Lock on spinner drops bottle to cold storage
+    if(difference>2000){  
       Step = 7;
     }
   }
-  else if(Step == 7){
+  else if(Step == 7){ //Lock returns to original position to receive next bottle
     if(difference>2000){
-      Step = 0;
+      Step = 0; //Step 0 is the IDLE state
     }
   }
   
@@ -185,10 +194,10 @@ float temp_read_ntc(){
   return T;
 }
 
-int spin_time(float temp_cold){
+unsigned long spin_time(float temp_cold){
   
 //  float difference = temp_hot - temp_cold;
-  int spin_time; //= (int) difference * ((10*60*1000)/23); //spin time of every degree increase multiplied by degrees needed to increase (in ms)
+  unsigned long spin_time; //= (int) difference * ((10*60*1000)/23); //spin time of every degree increase multiplied by degrees needed to increase (in ms)
 
   if(temp_cold > 10){
     spin_time = 720000;
@@ -207,29 +216,48 @@ int spin_time(float temp_cold){
 }
 
 void DC_motor_sequence(){
-  analogWrite(spin_PWM, 255);
   digitalWrite(DCPump, LOW);
   if(millis() - Dir_time > 3000){
     spin_DIR_val = !spin_DIR_val;
-    digitalWrite(spin_DIR, spin_DIR_val);
     Dir_time = millis();
+  }
+
+  if(spin_DIR_val == 1){
+    analogWrite(spin_RIGHT, 0);
+    analogWrite(spin_LEFT, 255);
+  }
+
+  else{
+    analogWrite(spin_RIGHT, 255);
+    analogWrite(spin_LEFT, 0);
   }
   
 }
 
 void Spin_shake_sequence(){
-  analogWrite(spin_PWM, 255);
+
   digitalWrite(DCPump, HIGH);
+  
   if(millis() - Dir_time > 1500){
     spin_DIR_val = !spin_DIR_val;
-    digitalWrite(spin_DIR, spin_DIR_val);
     Dir_time = millis();
+  }
+
+  if(spin_DIR_val == 1){
+    analogWrite(spin_RIGHT, 0);
+    analogWrite(spin_LEFT, 255);
+  }
+
+  else{
+    analogWrite(spin_RIGHT, 255);
+    analogWrite(spin_LEFT, 0);
   }
 }
 
 void Winch_func(){
   
-  analogWrite(spin_PWM, 0);
+  analogWrite(spin_RIGHT, 0);
+  analogWrite(spin_LEFT, 0);
   digitalWrite(DCPump, HIGH);
 
   if(Trigger_winch == 0 && (temp_Step == 1 || temp_Step == 2)){
@@ -249,7 +277,7 @@ void Winch_func(){
 
   else if(rasp_com == "END"){
     digitalWrite(Winch, HIGH);
-    step_time = millis() - difference;
+    step_time = millis() - temp_diff;
     Step = temp_Step;
     Trigger_winch = 0;
   }

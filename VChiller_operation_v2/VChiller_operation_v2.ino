@@ -12,7 +12,7 @@
 #define DCPump 9
 #define ACPump 8
 
-#define Temp_ColWater_p 2
+#define Temp_ColWater_p 16
 #define Temp_Refrig_p 14
 #define Temp_cold_Refrig_p 15
 

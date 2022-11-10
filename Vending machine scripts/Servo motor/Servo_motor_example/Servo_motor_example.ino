@@ -1,6 +1,6 @@
 #include <Servo.h>          //Servo motor library. This is standard library
 
-#define servo_pin 12
+#define servo_pin 7
 
 Servo servo_motor; //our servo name
 
