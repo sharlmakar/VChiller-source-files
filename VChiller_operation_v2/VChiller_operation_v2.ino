@@ -27,10 +27,14 @@ float Tcold, Thot, Trefrig = 5; //Temp cold water and hot refrigerant
 unsigned long Time;
 unsigned long Sol_open_time;
 unsigned long Sol_interv_time;
+unsigned long Sol_interv_time_def;
+unsigned long Sol_open_time_rule = 7000;
 unsigned long Mag_stir_time;
 unsigned long print_time, lcd_time;
 int TriggerSol_interv, Trigger_hot, Trigger_solenoid  = 0;
+int TriggerSol_interv_def = 1;
 int TriggerSol_open = 1;
+int TriggerSol_open_def = 1;
 
 int spin_time_condition = 1000;
 int throttle = 51;
@@ -74,6 +78,7 @@ void setup() {
 
   print_time = millis();
   lcd_time = millis();
+  Sol_interv_time_def = millis();
 
   lcd_print(); 
   
@@ -206,27 +211,50 @@ void Solenoid_op(){
     Sol_interv_time = millis();
     Sol_open_time = millis();
   }
+  else if(TriggerSol_interv_def == 0){
+    TriggerSol_interv_def = 1;
+    TriggerSol_interv = 1;
+    TriggerSol_open_def = 0;
+    digitalWrite(Solenoid, HIGH);
+    Sol_interv_time_def = millis();
+    Sol_open_time = millis();
+  }
 
-  else if(((Time - Sol_open_time) > 10000) && (TriggerSol_open == 0)){
+  else if(((Time - Sol_open_time) > Sol_open_time_rule) && (TriggerSol_open == 0)){
     digitalWrite(Solenoid, LOW);
     Sol_interv_time = millis();
     TriggerSol_open = 1;
   }
 
-  else if(((Time - Sol_interv_time) > 120000) && Tcold > 25){
-    TriggerSol_interv = 0;
+  else if(((Time - Sol_open_time) > Sol_open_time_rule) && (TriggerSol_open_def == 0)){
+    digitalWrite(Solenoid, LOW);
+    Sol_interv_time_def = millis();
+    Sol_interv_time = millis();
+    TriggerSol_open = 1;
   }
 
-  else if(((Time - Sol_interv_time) > 150000) && Tcold > 15 && Tcold <= 25){
+  else if(((Time - Sol_interv_time) > 60000) && Tcold > 25){
     TriggerSol_interv = 0;
+    Sol_open_time_rule = 5000;
   }
 
-  else if(((Time - Sol_interv_time) > 180000) && Tcold > 10 && Tcold <= 15){
+  else if(((Time - Sol_interv_time) > 120000) && Tcold > 15 && Tcold <= 25){
     TriggerSol_interv = 0;
+    Sol_open_time_rule = 7000;
   }
 
-  else if(((Time - Sol_interv_time) > 240000) && Tcold <= 10){
+  else if(((Time - Sol_interv_time) > 180000) && Tcold > 6 && Tcold <= 15){
     TriggerSol_interv = 0;
+    Sol_open_time_rule = 7000;
+  }
+
+  else if(((Time - Sol_interv_time) > 240000) && Tcold <= 6){
+    TriggerSol_interv = 0;
+    Sol_open_time_rule = 7000;
+  }
+  else if((Time - Sol_interv_time_def) > 900000){
+    TriggerSol_interv_def = 0;
+    Sol_open_time_rule = 12000;
   }
 }
 
@@ -240,7 +268,7 @@ float GetTemp(DallasTemperature temp, float reading0){
   temp.requestTemperatures();
   delay(25);
   reading2 = temp.getTempCByIndex(0);
-  if (floor(reading1) == floor(reading2)){
+  if (floor(reading1) == floor(reading2) && floor(reading2) != -127){
     return reading2;
   }
   else{
