@@ -6,9 +6,11 @@ void setup() {
 }
 
 void loop() {
-  while(Serial.available()) {
-    rasp_com= Serial.readString();// read the incoming data as string
+  
+  if(Serial.available()){
+//    while(Serial.available()) {
+      rasp_com= Serial.readString();// read the incoming data as string
+//    }
   }
-
-  Serial.println(rasp_com);
+  Serial.print(rasp_com);
 }

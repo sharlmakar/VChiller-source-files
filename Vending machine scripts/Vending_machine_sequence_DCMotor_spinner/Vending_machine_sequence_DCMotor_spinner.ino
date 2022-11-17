@@ -13,8 +13,9 @@
 #define Winch 8
 #define Winch_dir 9
 #define limit_switch_up 10
-#define limit_switch_down 11
-#define Winch_approv 12
+#define ultrasonic_trig 11
+#define ultrasonic_echo 12 
+#define Winch_approv 13
 
 #define DCPump A3
 
@@ -22,12 +23,13 @@
 
 int difference = 0;
 int temp_diff = 0;
-int Trigger_winch = 0;
+int Trigger_winch = 2;
 int Step = 0;
 int temp_Step = 0;
 unsigned long step_time = 0;
 unsigned long spining_time = 0;
 unsigned long Dir_time = 0;
+unsigned long Down_winch_time = 1000000;
 bool spin_DIR_val = LOW;
 
 String rasp_com;
@@ -41,8 +43,9 @@ void setup() {
   pinMode(ProxIN_cold,INPUT);
   
   pinMode(limit_switch_up,INPUT);
-  pinMode(limit_switch_down,INPUT);
-//  pinMode(Winch_button_up,INPUT);
+  pinMode(ultrasonic_trig, OUTPUT);
+  pinMode(ultrasonic_echo, INPUT);
+
   pinMode(Winch_dir, OUTPUT);
   pinMode(Winch, OUTPUT);
   pinMode(Winch_approv, OUTPUT);
@@ -77,7 +80,7 @@ void loop() {
     case 1: digitalWrite(Winch_approv, HIGH);
             servo_motor1.write(180);//drops bottle into spinner
             break;
-    case 2: digitalWrite(Winch_approv, LOW);
+    case 2: digitalWrite(Winch_approv, HIGH);
             servo_motor1.write(0); //returns to original position
             break;
     case 3: digitalWrite(Winch_approv, LOW);
@@ -110,13 +113,14 @@ void loop() {
 void case_handler(){
   difference = millis() - step_time;
 
-  if(rasp_com=="START"){
+  if(rasp_com=="START" && Step != 1 && Step != 2 && Trigger_winch == 2){
     temp_Step = Step;
     temp_diff = millis() - step_time;
     Step = 8;
+    Trigger_winch = 0;
   }
 
-  else if(digitalRead(ProxIN_warm)==0 && digitalRead(ProxIN_cold)==1 && Step == 0){  //Initiate sequence
+  else if(digitalRead(ProxIN_warm)== 0 && digitalRead(ProxIN_cold)==1 && Step == 0){  //Initiate sequence
     Step = 1;
     step_time = millis();
   }
@@ -260,15 +264,12 @@ void Winch_func(){
   analogWrite(spin_LEFT, 0);
   digitalWrite(DCPump, HIGH);
 
-  if(Trigger_winch == 0 && (temp_Step == 1 || temp_Step == 2)){
-    Trigger_winch = 1;
-    Serial.println("NOT READY");
-    delay(3000);
-    Serial.println("READY");
-  }
-  
-  if(rasp_com == "DOWN" && digitalRead(limit_switch_down) == 0){
+  if(rasp_com == "DOWN" && ultrasonic_listen() < 10 && (millis() -Down_winch_time) < 40000){
     digitalWrite(Winch, LOW);
+    if(Trigger_winch == 0){
+      Down_winch_time = millis();
+      Trigger_winch = 1;
+    }
   }
   
   else if(rasp_com == "UP" && digitalRead(limit_switch_up) == 1){
@@ -279,7 +280,7 @@ void Winch_func(){
     digitalWrite(Winch, HIGH);
     step_time = millis() - temp_diff;
     Step = temp_Step;
-    Trigger_winch = 0;
+    Trigger_winch = 2;
   }
   
   else{
@@ -288,8 +289,25 @@ void Winch_func(){
   
 }
 
+int ultrasonic_listen(){
+  // Clears the trigPin condition
+  digitalWrite(ultrasonic_trig, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
+  digitalWrite(ultrasonic_trig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(ultrasonic_trig, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  unsigned long duration1 = pulseIn(ultrasonic_echo, HIGH);
+  delay(1);
+  unsigned long duration2 = pulseIn(ultrasonic_echo, HIGH);
+  // Calculating the distance
+  return duration1 * 0.034 / 2; // Speed of sound wave divided by 2 (go and back). Distance measured in cm.
+}
+
 void read_Serial(){
-  while(Serial.available()) {
+  if(Serial.available()){
     rasp_com= Serial.readString();// read the incoming data as string
+    rasp_com.remove(rasp_com.length()-1); //remove endline character \n
   }
 }
