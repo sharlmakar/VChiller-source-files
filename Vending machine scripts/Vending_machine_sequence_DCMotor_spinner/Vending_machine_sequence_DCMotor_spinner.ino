@@ -49,7 +49,9 @@ void setup() {
   pinMode(Winch_dir, OUTPUT);
   pinMode(Winch, OUTPUT);
   pinMode(Winch_approv, OUTPUT);
-//  pinMode(spin_DIR,OUTPUT);
+
+  digitalWrite(Winch_dir, HIGH);
+  digitalWrite(Winch, HIGH);
 
   digitalWrite(Winch_approv, LOW);
   
@@ -61,7 +63,7 @@ void setup() {
 
   servo_motor1.write(0);
   servo_motor2.write(180); //If bottle is present in spinner it drops it into cold storage
-  delay(5000);
+  delay(3000);
   servo_motor2.write(0);  //Spinner servo returns to open positionn to wait for next bottle
   
   analogWrite(spin_RIGHT, 0);
@@ -140,14 +142,14 @@ void case_handler(){
     if(difference>1000){
       Step = 4;
       spining_time = spin_time(temp_read_ntc());
-      Serial.println(spining_time);
-      Serial.println(temp_read_ntc());
+//      Serial.println(spining_time);
+//      Serial.println(temp_read_ntc());
       Dir_time = millis();
       step_time = millis();
     }
   }
   else if(Step == 4){ //DC motor spins bottle
-    Serial.println(millis() - step_time);
+//    Serial.println(millis() - step_time);
     if(millis() - step_time>spining_time){
       Step = 5;
       step_time = millis();
@@ -259,13 +261,15 @@ void Spin_shake_sequence(){
 }
 
 void Winch_func(){
-  
+  Serial.println(ultrasonic_listen());
   analogWrite(spin_RIGHT, 0);
   analogWrite(spin_LEFT, 0);
   digitalWrite(DCPump, HIGH);
 
-  if(rasp_com == "DOWN" && ultrasonic_listen() < 10 && (millis() -Down_winch_time) < 40000){
+  if(rasp_com == "DOWN" && ultrasonic_listen() > 10 && (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 10000 )))){
+//    Serial.println("down");
     digitalWrite(Winch, LOW);
+    digitalWrite(Winch_dir, HIGH);
     if(Trigger_winch == 0){
       Down_winch_time = millis();
       Trigger_winch = 1;
@@ -273,11 +277,14 @@ void Winch_func(){
   }
   
   else if(rasp_com == "UP" && digitalRead(limit_switch_up) == 1){
+//    Serial.println("up");
     digitalWrite(Winch, LOW);
+    digitalWrite(Winch_dir, LOW);
   }
 
   else if(rasp_com == "END"){
     digitalWrite(Winch, HIGH);
+    digitalWrite(Winch_dir, HIGH);
     step_time = millis() - temp_diff;
     Step = temp_Step;
     Trigger_winch = 2;
@@ -285,6 +292,7 @@ void Winch_func(){
   
   else{
     digitalWrite(Winch, HIGH);
+    digitalWrite(Winch_dir, HIGH);
   }
   
 }

@@ -8,9 +8,8 @@ void setup() {
 void loop() {
   
   if(Serial.available()){
-//    while(Serial.available()) {
-      rasp_com= Serial.readString();// read the incoming data as string
-//    }
+    rasp_com= Serial.readString();// read the incoming data as string
+    rasp_com.remove(rasp_com.length()-1); //remove endline character \n
   }
-  Serial.print(rasp_com);
+  Serial.println(rasp_com);
 }
