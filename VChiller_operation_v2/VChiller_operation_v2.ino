@@ -188,21 +188,6 @@ void loop() {
   }
 }
 
-//
-//void Mag_stir_func(){
-//  if(TriggerMag == 0){
-//    Mag_stir_time = millis();
-//    TriggerMag = 1;
-//    analogWrite(Mag_stir[0], throttle);
-//  }
-//
-//  if(((Time - Mag_stir_time) > spin_time_condition) && (throttle < 255)){
-//    throttle += 51;
-//    analogWrite(Mag_stir[0], throttle);
-//    spin_time_condition += 1000;
-//  }
-//}
-
 void Solenoid_op(){
   if(TriggerSol_interv == 0){
     TriggerSol_interv = 1;
@@ -211,53 +196,33 @@ void Solenoid_op(){
     Sol_interv_time = millis();
     Sol_open_time = millis();
   }
-  else if(TriggerSol_interv_def == 0){
-    TriggerSol_interv_def = 1;
-    TriggerSol_interv = 1;
-    TriggerSol_open_def = 0;
-    digitalWrite(Solenoid, HIGH);
-    Sol_interv_time_def = millis();
-    Sol_open_time = millis();
-  }
-
+  
   else if(((Time - Sol_open_time) > Sol_open_time_rule) && (TriggerSol_open == 0)){
     digitalWrite(Solenoid, LOW);
     Sol_interv_time = millis();
     TriggerSol_open = 1;
   }
 
-  else if(((Time - Sol_open_time) > Sol_open_time_rule) && (TriggerSol_open_def == 0)){
-    digitalWrite(Solenoid, LOW);
-    Sol_interv_time_def = millis();
-    Sol_interv_time = millis();
-    TriggerSol_open = 1;
+  else if(((Time - Sol_interv_time) > 90000) && Tcold > 26){
+    TriggerSol_interv = 0;
+    Sol_open_time_rule = 10000;
   }
 
-  else if(((Time - Sol_interv_time) > 60000) && Tcold > 25){
+  else if(((Time - Sol_interv_time) > 120000) && Tcold > 15 && Tcold <= 26){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 5000;
+    Sol_open_time_rule = 10000;
   }
 
-  else if(((Time - Sol_interv_time) > 120000) && Tcold > 15 && Tcold <= 25){
+  else if(((Time - Sol_interv_time) > 180000) && Tcold > 8 && Tcold <= 15){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 7000;
+    Sol_open_time_rule = 10000;
   }
 
-  else if(((Time - Sol_interv_time) > 180000) && Tcold > 6 && Tcold <= 15){
+  else if(((Time - Sol_interv_time) > 240000) && Tcold <= 8){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 7000;
-  }
-
-  else if(((Time - Sol_interv_time) > 240000) && Tcold <= 6){
-    TriggerSol_interv = 0;
-    Sol_open_time_rule = 7000;
-  }
-  else if((Time - Sol_interv_time_def) > 900000){
-    TriggerSol_interv_def = 0;
-    Sol_open_time_rule = 12000;
+    Sol_open_time_rule = 10000;
   }
 }
-
 float GetTemp(DallasTemperature temp, float reading0){
   
   float reading1,reading2 = 0;

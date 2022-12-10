@@ -15,7 +15,7 @@
 #define limit_switch_up 10
 #define ultrasonic_trig 11
 #define ultrasonic_echo 12 
-#define Winch_approv 13
+//#define Winch_approv 13
 
 #define DCPump A3
 
@@ -32,7 +32,8 @@ unsigned long Dir_time = 0;
 unsigned long Down_winch_time = 1000000;
 bool spin_DIR_val = LOW;
 
-String rasp_com;
+//String rasp_com;
+char rasp_com;
 
 Servo servo_motor1, servo_motor2; //our servo name
 //Adafruit_MLX90614 mlx = Adafruit_MLX90614();
@@ -48,12 +49,12 @@ void setup() {
 
   pinMode(Winch_dir, OUTPUT);
   pinMode(Winch, OUTPUT);
-  pinMode(Winch_approv, OUTPUT);
+//  pinMode(Winch_approv, OUTPUT);
 
   digitalWrite(Winch_dir, HIGH);
   digitalWrite(Winch, HIGH);
 
-  digitalWrite(Winch_approv, LOW);
+//  digitalWrite(Winch_approv, LOW);
   
   pinMode(DCPump,OUTPUT);
   digitalWrite(DCPump, HIGH);
@@ -70,6 +71,7 @@ void setup() {
   analogWrite(spin_LEFT, 0);
   
   Serial.begin(9600);
+  Serial.println("ARD1");
 
 }
 
@@ -79,35 +81,35 @@ void loop() {
   case_handler();
   
   switch(Step){
-    case 1: digitalWrite(Winch_approv, HIGH);
+    case 1: //digitalWrite(Winch_approv, HIGH);
             servo_motor1.write(180);//drops bottle into spinner
             break;
-    case 2: digitalWrite(Winch_approv, HIGH);
+    case 2: //digitalWrite(Winch_approv, HIGH);
             servo_motor1.write(0); //returns to original position
             break;
-    case 3: digitalWrite(Winch_approv, LOW);
+    case 3: //digitalWrite(Winch_approv, LOW);
             servo_motor2.write(90); //spinner lock closes
             break;
-    case 4: digitalWrite(Winch_approv, LOW);
+    case 4: //digitalWrite(Winch_approv, LOW);
             DC_motor_sequence(); //DC motor spins bottle
             break;
-    case 5: digitalWrite(Winch_approv, LOW);
+    case 5: //digitalWrite(Winch_approv, LOW);
             Spin_shake_sequence(); //DC motor spins bottle
             break;        
-    case 6: digitalWrite(Winch_approv, LOW);
+    case 6: //digitalWrite(Winch_approv, LOW);
             analogWrite(spin_RIGHT, 0);
             analogWrite(spin_LEFT, 0);
             digitalWrite(DCPump, HIGH);
             servo_motor2.write(180); //Lock on spinner drops bottle to cold storage
             break;
-    case 7: digitalWrite(Winch_approv, LOW);
+    case 7: //digitalWrite(Winch_approv, LOW);
             servo_motor2.write(0); //Lock on spinner returns to open position to wait for next bottle
             break;
-    case 8: digitalWrite(Winch_approv, LOW);
+    case 8: //digitalWrite(Winch_approv, LOW);
             Winch_func();
             break;
-    default:digitalWrite(Winch_approv, LOW);
-            break;
+//    default:digitalWrite(Winch_approv, LOW);
+//            break;
   }
 
 }
@@ -115,7 +117,7 @@ void loop() {
 void case_handler(){
   difference = millis() - step_time;
 
-  if(rasp_com=="START" && Step != 1 && Step != 2 && Trigger_winch == 2){
+  if(rasp_com=='B' && Step != 1 && Step != 2 && Trigger_winch == 2){
     temp_Step = Step;
     temp_diff = millis() - step_time;
     Step = 8;
@@ -261,13 +263,17 @@ void Spin_shake_sequence(){
 }
 
 void Winch_func(){
-  Serial.println(ultrasonic_listen());
+//  Serial.println(ultrasonic_listen());
   analogWrite(spin_RIGHT, 0);
   analogWrite(spin_LEFT, 0);
   digitalWrite(DCPump, HIGH);
-
-  if(rasp_com == "DOWN" && ultrasonic_listen() > 10 && (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 10000 )))){
-//    Serial.println("down");
+  
+  Serial.println(rasp_com);
+//  Serial.println(ultrasonic_listen());
+ 
+  if(rasp_com == 'L' && ultrasonic_listen() > 10){ //&& (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 10000 )))){
+//    Serial.println("2ana hena 2ana hena");
+//    Serial.println(Trigger_winch);
     digitalWrite(Winch, LOW);
     digitalWrite(Winch_dir, HIGH);
     if(Trigger_winch == 0){
@@ -276,13 +282,13 @@ void Winch_func(){
     }
   }
   
-  else if(rasp_com == "UP" && digitalRead(limit_switch_up) == 1){
+  else if(rasp_com == 'R' && read_ind_prox() == HIGH){
 //    Serial.println("up");
     digitalWrite(Winch, LOW);
     digitalWrite(Winch_dir, LOW);
   }
 
-  else if(rasp_com == "END"){
+  else if(rasp_com == 'E'){
     digitalWrite(Winch, HIGH);
     digitalWrite(Winch_dir, HIGH);
     step_time = millis() - temp_diff;
@@ -314,8 +320,17 @@ int ultrasonic_listen(){
 }
 
 void read_Serial(){
+  char temp_rasp_com = '\n';
   if(Serial.available()){
-    rasp_com= Serial.readString();// read the incoming data as string
-    rasp_com.remove(rasp_com.length()-1); //remove endline character \n
+      temp_rasp_com = Serial.read();
   }
+  if(temp_rasp_com != '\n'){
+    rasp_com = temp_rasp_com;
+  }
+}
+
+bool read_ind_prox(){
+  if(digitalRead(limit_switch_up) == HIGH) return HIGH; //When the metal (the storage compartment) is not detected
+  else  return LOW; //When the metal (the storage compartment) is detected
+
 }

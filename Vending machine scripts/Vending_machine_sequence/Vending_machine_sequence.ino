@@ -1,21 +1,26 @@
+// CHANGE ANY VLAUES CHANGED FOR TESTING:
+//Spin time has to be changed back
+
 #include <Wire.h>
 #include <Servo.h>
 #include <Adafruit_MLX90614.h>
 
 #define ProxIN_warm 2
-#define ProxIN_cold 3
-#define Winch 4
-#define Winch_dir 5
-#define spin_PWM 6
-#define spin_DIR 7
-#define DCPump 8
-#define servo_pin1 9
-#define servo_pin2 10
-#define limit_switch_up 11
-#define ultrasonic_trig 12
-#define ultrasonic_echo 13
+#define ProxIN_cold1 3
+#define ProxIN_cold2 A2
 
-#define Winch_approv A2
+#define spin_PWM 5
+#define spin_DIR 6
+#define servo_pin1 4
+#define servo_pin2 7
+#define Winch 8
+#define Winch_dir 9
+
+#define DCPump A3
+
+#define limit_switch_up 10
+#define ultrasonic_trig 11
+#define ultrasonic_echo 12
 
 #define Temp_pin A0
 
@@ -30,7 +35,7 @@ unsigned long Dir_time = 0;
 unsigned long Down_winch_time = 1000000;
 bool spin_DIR_val = LOW;
 
-String rasp_com;
+char rasp_com;
 
 Servo servo_motor1, servo_motor2; //our servo name
 //Adafruit_MLX90614 mlx = Adafruit_MLX90614();
@@ -38,32 +43,37 @@ Servo servo_motor1, servo_motor2; //our servo name
 void setup() {
   
   pinMode(ProxIN_warm,INPUT);
-  pinMode(ProxIN_cold,INPUT);
+  pinMode(ProxIN_cold1,INPUT);
+  pinMode(ProxIN_cold2,INPUT);
   
   pinMode(limit_switch_up,INPUT);
   pinMode(ultrasonic_trig, OUTPUT);
   pinMode(ultrasonic_echo, INPUT);
+  
   pinMode(Winch_dir, OUTPUT);
   pinMode(Winch, OUTPUT);
-  pinMode(Winch_approv, OUTPUT);
+  
+  digitalWrite(Winch_dir, HIGH);
+  digitalWrite(Winch, HIGH);
+  
   pinMode(spin_DIR,OUTPUT);
+
+  analogWrite(spin_PWM,0);
+  digitalWrite(spin_DIR, LOW);
 
   pinMode(DCPump,OUTPUT);
   digitalWrite(DCPump, HIGH);
-
-  digitalWrite(Winch_approv, LOW);
+  
   servo_motor1.attach(servo_pin1);
   servo_motor2.attach(servo_pin2);
 
   servo_motor1.write(0);
-  servo_motor2.write(180); //If bottle is present in spinner it drops it into cold storage
-  delay(5000);
-  servo_motor2.write(0);  //Spinner servo returns to open positionn to wait for next bottle
-  
-  analogWrite(spin_PWM,0);
-  digitalWrite(spin_DIR, LOW);
+  servo_motor2.write(90); //If bottle is present in spinner it drops it into cold storage
+  delay(3000);
+  servo_motor2.write(180);  //Spinner servo returns to open positionn to wait for next bottle
   
   Serial.begin(9600);
+  Serial.println("ARD1");
 
 }
 
@@ -73,48 +83,42 @@ void loop() {
   case_handler();
   
   switch(Step){
-    case 1: digitalWrite(Winch_approv, HIGH);
-            servo_motor1.write(180);//drops bottle into spinner
+    case 1: servo_motor1.write(180);//drops bottle into spinner
             break;
-    case 2: digitalWrite(Winch_approv,HIGH);
-            servo_motor1.write(0); //returns to original position
+    case 2: servo_motor1.write(0); //returns to original position
             break;
-    case 3: digitalWrite(Winch_approv, LOW);
-            servo_motor2.write(90); //spinner lock closes
+    case 3: servo_motor1.write(10);
+            servo_motor2.write(160); //spinner lock closes
             break;
-    case 4: digitalWrite(Winch_approv, LOW);
-            DC_motor_sequence(); //DC motor spins bottle
+    case 4: DC_motor_sequence(); //DC motor spins bottle
             break;
-    case 5: digitalWrite(Winch_approv, LOW);
-            Spin_shake_sequence(); //DC motor spins bottle
+    case 5: Spin_shake_sequence(); //DC motor spins bottle
             break;        
-    case 6: digitalWrite(Winch_approv, LOW);
-            analogWrite(spin_PWM, 0);
-            servo_motor2.write(180); //Lock on spinner drops bottle to cold storage
+    case 6: analogWrite(spin_PWM, 0);
+            digitalWrite(DCPump, HIGH);
+            servo_motor2.write(90); //Lock on spinner drops bottle to cold storage
             break;
-    case 7: digitalWrite(Winch_approv, LOW);
-            servo_motor2.write(0); //Lock on spinner returns to open position to wait for next bottle
+    case 7: servo_motor2.write(180); //Lock on spinner returns to open position to wait for next bottle
             break;
-    case 8: digitalWrite(Winch_approv, LOW);
-            Winch_func();
+    case 8: Winch_func();
             break;
-    default:digitalWrite(Winch_approv, LOW);
-            break;
+//    default:digitalWrite(Winch_approv, LOW);
+//            break;
   }
 
 }
 
 void case_handler(){
   difference = millis() - step_time;
-
-  if(rasp_com=="START" && Step != 1 && Step != 2 && Trigger_winch == 2){
+  if(rasp_com=='B' && Step != 1 && Step != 2 && Trigger_winch == 2){
+//    Serial.println("2ana hena");
     temp_Step = Step;
-    temp_diff = difference;
+    temp_diff = millis() - step_time;
     Step = 8;
     Trigger_winch = 0;
   }
 
-  else if(digitalRead(ProxIN_warm)==0 && digitalRead(ProxIN_cold)==1){  //drops bottle into spinner
+  else if(digitalRead(ProxIN_warm)==0 && digitalRead(ProxIN_cold1)==1 && digitalRead(ProxIN_cold2)==1 && Step == 0){  //drops bottle into spinner
     Step = 1;
     step_time = millis();
   }
@@ -156,9 +160,9 @@ void case_handler(){
       Step = 7;
     }
   }
-  else if(Step == 7){
+  else if(Step == 7){ //Lock returns to original position to receive next bottle
     if(difference>2000){
-      Step = 0;
+      Step = 0; //Step 0 is the IDLE state
     }
   }
   
@@ -189,13 +193,14 @@ float temp_read_ntc(){
   return T;
 }
 
-int spin_time(float temp_cold){
+unsigned long spin_time(float temp_cold){
   
 //  float difference = temp_hot - temp_cold;
-  int spin_time; //= (int) difference * ((10*60*1000)/23); //spin time of every degree increase multiplied by degrees needed to increase (in ms)
+  unsigned long spin_time; //= (int) difference * ((10*60*1000)/23); //spin time of every degree increase multiplied by degrees needed to increase (in ms)
 
   if(temp_cold > 10){
-    spin_time = 720000;
+//    spin_time = 720000; CHANGE THIS FOR THE REAL THING
+    spin_time = 30000;
   }
   else if(temp_cold > 5){
     spin_time = 600000;
@@ -213,7 +218,7 @@ int spin_time(float temp_cold){
 void DC_motor_sequence(){
   analogWrite(spin_PWM, 255);
   digitalWrite(DCPump, LOW);
-  if(millis() - Dir_time > 3000){
+  if(millis() - Dir_time > 10000){
     spin_DIR_val = !spin_DIR_val;
     digitalWrite(spin_DIR, spin_DIR_val);
     Dir_time = millis();
@@ -224,7 +229,7 @@ void DC_motor_sequence(){
 void Spin_shake_sequence(){
   analogWrite(spin_PWM, 255);
   digitalWrite(DCPump, HIGH);
-  if(millis() - Dir_time > 1500){
+  if(millis() - Dir_time > 10000){
     spin_DIR_val = !spin_DIR_val;
     digitalWrite(spin_DIR, spin_DIR_val);
     Dir_time = millis();
@@ -236,20 +241,25 @@ void Winch_func(){
   analogWrite(spin_PWM, 0);
   digitalWrite(DCPump, HIGH);
 
-  if(rasp_com == "DOWN" && ultrasonic_listen() < 10 && (millis() -Down_winch_time) < 40000){
+  Serial.println(rasp_com);
+
+  if(rasp_com == 'L' && ultrasonic_listen() > 10 && (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 10000 )))){
     digitalWrite(Winch, LOW);
+    digitalWrite(Winch_dir, HIGH);
     if(Trigger_winch == 0){
       Down_winch_time = millis();
       Trigger_winch = 1;
     }
   }
   
-  else if(rasp_com == "UP" && digitalRead(limit_switch_up) == 1){
+  else if(rasp_com == 'R' && read_ind_prox() == HIGH){
     digitalWrite(Winch, LOW);
+    digitalWrite(Winch_dir, LOW);
   }
 
-  else if(rasp_com == "END"){
+  else if(rasp_com == 'E'){
     digitalWrite(Winch, HIGH);
+    digitalWrite(Winch_dir, HIGH);
     step_time = millis() - temp_diff;
     Step = temp_Step;
     Trigger_winch = 2;
@@ -257,11 +267,12 @@ void Winch_func(){
   
   else{
     digitalWrite(Winch, HIGH);
+    digitalWrite(Winch_dir, HIGH);
   }
   
 }
 
-int ultrasonic_listen(){
+int ultrasonic_listen(){ // Funuction reads the ultrasound proximity sensor of the warm storage at the lower limit
   // Clears the trigPin condition
   digitalWrite(ultrasonic_trig, LOW);
   delayMicroseconds(2);
@@ -278,8 +289,17 @@ int ultrasonic_listen(){
 }
 
 void read_Serial(){
-  while(Serial.available()) {
-    rasp_com= Serial.readString();// read the incoming data as string
-    rasp_com.remove(rasp_com.length()-1); //remove endline character \n
+  char temp_rasp_com = '\n';
+  if(Serial.available()){
+      temp_rasp_com = Serial.read();
   }
+  if(temp_rasp_com != '\n'){
+    rasp_com = temp_rasp_com;
+  }
+}
+
+bool read_ind_prox(){ //Function reads the proximity sensor of warm storage at the upper limit
+  if(digitalRead(limit_switch_up) == HIGH) return HIGH; //When the metal (the storage compartment) is not detected
+  else  return LOW; //When the metal (the storage compartment) is detected
+
 }
