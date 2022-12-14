@@ -1,3 +1,5 @@
+//Check if the relays
+
 #include <OneWire.h>
 #include <DallasTemperature.h> //For temperature sensors
 #include <Wire.h> // For I2C
@@ -25,7 +27,7 @@ unsigned long Time;
 unsigned long Sol_open_time;
 unsigned long Sol_interv_time;
 unsigned long print_time, lcd_time;
-int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB  = 0;
+int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB, Trigger_AirBlow  = 0;
 int TriggerSol_open = 1;
 
 OneWire oneWire1(Temp_VC_p);
@@ -53,7 +55,7 @@ void setup() {
   digitalWrite(Solenoid, LOW);
   digitalWrite(Vac_pump, LOW);
   digitalWrite(DCPump, LOW);
-  digitalWrite(AirBlow, LOW);
+  digitalWrite(AirBlow, HIGH);
   
   lcd.begin (20,4); // 20 x 4 LCD module
   lcd.setBacklightPin(3,POSITIVE); // BL, BL_POL
@@ -119,10 +121,10 @@ void loop(){
       else if(T_Rad<33){
         digitalWrite(Fan2, LOW);
       }
-      
       digitalWrite(Fan1, HIGH);
       digitalWrite(DCPump, HIGH);
       digitalWrite(Vac_pump, HIGH);
+      Airblow_off();
       Solenoid_op();
     }
 
@@ -135,8 +137,8 @@ void loop(){
         digitalWrite(DCPump, LOW);
         digitalWrite(Vac_pump, HIGH);
         digitalWrite(Fan1, HIGH);
-        digitalWrite(AirBlow, LOW);
         Solenoid_op();
+        Airblow_off();
         
         if(T_Rad>35){
           digitalWrite(Fan2, HIGH);
@@ -153,7 +155,7 @@ void loop(){
           digitalWrite(DCPump, LOW);
           digitalWrite(Vac_pump, HIGH);
           digitalWrite(Fan1, HIGH);
-          digitalWrite(AirBlow, HIGH);
+          AirBlow_on();
           Solenoid_op();
           
           if(T_Rad>35){
@@ -167,7 +169,6 @@ void loop(){
   
         else if(T_cold_stor <= -4){
           TriggerSol_interv = 0;
-          digitalWrite(AirBlow, LOW);
           if(Trigger_solenoid == 0){
             Trigger_solenoid = 1;
             digitalWrite(Solenoid, HIGH);
@@ -179,6 +180,7 @@ void loop(){
           digitalWrite(DCPump, LOW);
           digitalWrite(Fan1, LOW);
           digitalWrite(Fan2, LOW);
+          Airblow_off();
      
         } 
       }
@@ -317,5 +319,27 @@ float GetTemp(DallasTemperature temp, float reading0){
   }
   else{
     return reading0;
+  }
+}
+
+void AirBlow_on(){
+  if(Trigger_AirBlow == 0){
+    digitalWrite(AirBlow, LOW);
+    delay(3000);
+    digitalWrite(AirBlow, HIGH);
+    delay(2000);
+    digitalWrite(AirBlow, LOW);
+    delay(1500);
+    digitalWrite(AirBlow, HIGH);
+    Trigger_AirBlow = 1;
+  }
+}
+
+void Airblow_off(){
+  if(Trigger_AirBlow == 1){
+    digitalWrite(AirBlow, LOW);
+    delay(1000);
+    digitalWrite(AirBlow, HIGH);
+    Trigger_AirBlow = 0;
   }
 }

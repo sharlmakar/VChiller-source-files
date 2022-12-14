@@ -203,24 +203,24 @@ void Solenoid_op(){
     TriggerSol_open = 1;
   }
 
-  else if(((Time - Sol_interv_time) > 90000) && Tcold > 26){
+  else if(((Time - Sol_interv_time) > 60000) && Tcold > 26){
     TriggerSol_interv = 0;
     Sol_open_time_rule = 10000;
   }
 
-  else if(((Time - Sol_interv_time) > 120000) && Tcold > 15 && Tcold <= 26){
+  else if(((Time - Sol_interv_time) > 60000) && Tcold > 15 && Tcold <= 26){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 10000;
+    Sol_open_time_rule = 7000;
   }
 
-  else if(((Time - Sol_interv_time) > 180000) && Tcold > 8 && Tcold <= 15){
+  else if(((Time - Sol_interv_time) > 60000) && Tcold > 8 && Tcold <= 15){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 10000;
+    Sol_open_time_rule = 5000;
   }
 
-  else if(((Time - Sol_interv_time) > 240000) && Tcold <= 8){
+  else if(((Time - Sol_interv_time) > 60000) && Tcold <= 8){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 10000;
+    Sol_open_time_rule = 5000;
   }
 }
 float GetTemp(DallasTemperature temp, float reading0){
