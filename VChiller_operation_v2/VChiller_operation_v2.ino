@@ -158,7 +158,7 @@ void loop() {
         digitalWrite(Solenoid, HIGH);
         delay(2000);
         digitalWrite(Vac_pump, LOW);
-        delay(5000);
+        delay(35000);
         digitalWrite(Solenoid, LOW);
       }
   
@@ -203,24 +203,25 @@ void Solenoid_op(){
     TriggerSol_open = 1;
   }
 
-  else if(((Time - Sol_interv_time) > 60000) && Tcold > 26){
+  else if(((Time - Sol_interv_time) > 100000) && Tcold > 26){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 10000;
+    Sol_open_time_rule = 5000;
   }
 
-  else if(((Time - Sol_interv_time) > 60000) && Tcold > 15 && Tcold <= 26){
+  else if(((Time - Sol_interv_time) > 150000) && Tcold > 15 && Tcold <= 26){
     TriggerSol_interv = 0;
     Sol_open_time_rule = 7000;
   }
 
-  else if(((Time - Sol_interv_time) > 60000) && Tcold > 8 && Tcold <= 15){
+  else if(((Time - Sol_interv_time) > 30
+  0000) && Tcold > 8 && Tcold <= 15){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 5000;
+    Sol_open_time_rule = 10000;
   }
 
-  else if(((Time - Sol_interv_time) > 60000) && Tcold <= 8){
+  else if(((Time - Sol_interv_time) > 480000) && Tcold <= 8){
     TriggerSol_interv = 0;
-    Sol_open_time_rule = 5000;
+    Sol_open_time_rule = 7000;
   }
 }
 float GetTemp(DallasTemperature temp, float reading0){
