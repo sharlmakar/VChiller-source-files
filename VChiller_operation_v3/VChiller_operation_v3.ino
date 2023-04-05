@@ -12,7 +12,7 @@
 #define DCPump 9
 #define AirBlow 8
 
-#define Temp_VC_p 7
+#define Temp_VC_p 15
 #define Temp_Water_p 6
 #define Temp_Rad_p 5
 #define Temp_cold_stor_p 4
@@ -100,11 +100,11 @@ void loop(){
 
     Serial.println();
   }
-
-  if((Time - lcd_time)>1000){ //Refresh LCD every sec
-    lcd_time = millis();
-    lcd_print();  
-  }
+  lcd_print();
+//  if((Time - lcd_time)>1000){ //Refresh LCD every sec
+//    lcd_time = millis();
+//    lcd_print();  
+//  }
 
   if(T_Rad > 80 && T_Rad != 85.00 && Trigger_hot != 2){
     Trigger_hot = 1;
@@ -305,6 +305,7 @@ void lcd_print(){
   lcd.setCursor(0, 2);-
   lcd.print("Hot temp = ");
   lcd.print(T_Rad);
+//  lcd.print(T_cold_stor);
   lcd.print(" C");
 
   lcd.setCursor(0, 3);
@@ -323,7 +324,7 @@ float GetTemp(DallasTemperature temp, float reading0){
   temp.requestTemperatures();
   delay(25);
   reading2 = temp.getTempCByIndex(0);
-  if (floor(reading1) == floor(reading2)){
+  if ((floor(reading1) == floor(reading2)) && (reading1 != 85 && reading2 != 85)){ //&& reading1 != -127 && reading2 != -127)){
     return reading2;
   }
   else{

@@ -6,7 +6,7 @@
 //#define Winch_button_down 4
 //#define ProxIN_warm 2
 #define ProxIN_cold1 3
-#define ProxIN_cold2 13
+#define ProxIN_cold2 10
 #define spin_RIGHT 5
 #define spin_LEFT 6
 #define servo_pin1 4

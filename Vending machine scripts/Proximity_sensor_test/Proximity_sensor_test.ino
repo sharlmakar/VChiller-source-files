@@ -1,5 +1,5 @@
-int IRSensor = 3; // connect ir sensor to arduino pin 2
-int LED = 13; // conect Led to arduino pin 13
+int IRSensor = 10; // connect ir sensor to arduino pin 2
+//int LED = 13; // conect Led to arduino pin 13
 
 
 
