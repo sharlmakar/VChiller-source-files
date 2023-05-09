@@ -22,16 +22,16 @@ void setup() {
 }
 
 void loop() {
-  if(digitalRead(In1) == LOW) digitalWrite(Out1, LOW);
-  else digitalWrite(Out1, HIGH);
+  if(digitalRead(In1) == LOW) digitalWrite(Out1, HIGH);
+  else digitalWrite(Out1, LOW);
 
-  if(digitalRead(In2) == LOW) digitalWrite(Out2, LOW);
-  else digitalWrite(Out2, HIGH);
+  if(digitalRead(In2) == LOW) digitalWrite(Out2, HIGH);
+  else digitalWrite(Out2, LOW);
 
-  if(digitalRead(In3) == LOW) digitalWrite(Out3, LOW);
-  else digitalWrite(Out3, HIGH);
+  if(digitalRead(In3) == LOW) digitalWrite(Out3, HIGH);
+  else digitalWrite(Out3, LOW);
 
-  if(digitalRead(In4) == LOW) digitalWrite(Out4, LOW);
-  else digitalWrite(Out4, HIGH);
+  if(digitalRead(In4) == LOW) digitalWrite(Out4, HIGH);
+  else digitalWrite(Out4, LOW);
 
 }

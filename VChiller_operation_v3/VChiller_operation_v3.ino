@@ -137,14 +137,14 @@ void loop(){
       
       lcd_print();
        
-      if((T_VC > -2)){
+      if((T_cold_stor > -3)){
         Trigger_solenoid = 0;
         digitalWrite(DCPump, HIGH);
-        digitalWrite(Vac_pump, HIGH);
+        digitalWrite(Vac_pump, LOW);
         digitalWrite(Fan1, LOW);
         Solenoid_op();
-        digitalWrite(Dir_val, HIGH);
-        Airblow_off();
+        digitalWrite(Dir_val, LOW);
+        Airblow_on();
         
         if(T_Rad>35){
           digitalWrite(Fan2, LOW);
@@ -155,43 +155,21 @@ void loop(){
         }
       }
 
-      else if(T_VC <= -4){
-        if(T_cold_stor > -2){
-          Trigger_solenoid = 0;
-          digitalWrite(DCPump, HIGH);
-          digitalWrite(Vac_pump, LOW);
-          digitalWrite(Fan1, LOW);
-          digitalWrite(Dir_val, LOW);
-          delay(15000);
-          AirBlow_on();
-          Solenoid_op();
-          
-          if(T_Rad>35){
-            digitalWrite(Fan2, LOW);
-          }
-          
-          else if(T_Rad<33){
-            digitalWrite(Fan2, HIGH);
-          }
+      else if(T_cold_stor <= -5){
+        TriggerSol_interv = 0;
+        if(Trigger_solenoid == 0){
+          Trigger_solenoid = 1;
+          digitalWrite(Solenoid, LOW);
+          delay(2000);
+          digitalWrite(Vac_pump, HIGH);
+          delay(7000);
+          digitalWrite(Solenoid, HIGH);
         }
-  
-        else if(T_cold_stor <= -4){
-          TriggerSol_interv = 0;
-          if(Trigger_solenoid == 0){
-            Trigger_solenoid = 1;
-            digitalWrite(Solenoid, LOW);
-            delay(2000);
-            digitalWrite(Vac_pump, HIGH);
-            delay(7000);
-            digitalWrite(Solenoid, HIGH);
-          }
-          digitalWrite(DCPump, HIGH);
-          digitalWrite(Fan1, HIGH);
-          digitalWrite(Fan2, HIGH);
-          digitalWrite(Dir_val, HIGH);
-          Airblow_off();
-     
-        } 
+        digitalWrite(DCPump, HIGH);
+        digitalWrite(Fan1, HIGH);
+        digitalWrite(Fan2, HIGH);
+        digitalWrite(Dir_val, HIGH);
+        Airblow_off();
       }
     }
   }

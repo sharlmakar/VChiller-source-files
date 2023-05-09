@@ -6,13 +6,13 @@
 //#define Winch_button_down 4
 //#define ProxIN_warm 2
 #define ProxIN_cold1 3
-#define ProxIN_cold2 10
+#define ProxIN_cold2 2
 #define spin_RIGHT 5
 #define spin_LEFT 6
 #define servo_pin1 4
 #define servo_pin2 7
-#define Winch_lower 9
-#define Winch_raise 10
+#define Winch_lower 10
+#define Winch_raise 9
 #define limit_switch_up 8
 #define ultrasonic_trig 11
 #define ultrasonic_echo 12
@@ -56,6 +56,9 @@ void setup() {
   pinMode(spin_LEFT, OUTPUT);
   //  pinMode(Winch_approv, OUTPUT);
 
+  pinMode(Winch_lower, OUTPUT);
+  pinMode(Winch_raise, OUTPUT);
+
   digitalWrite(Winch_lower, HIGH);
   digitalWrite(Winch_raise, HIGH);
 
@@ -93,7 +96,7 @@ void loop() {
       servo_motor1.write(0); //returns to original position
       break;
     case 3: //digitalWrite(Winch_approv, LOW);
-      servo_motor2.write(150); //spinner lock closes
+      servo_motor2.write(80); //spinner lock closes
       break;
     case 4: //digitalWrite(Winch_approv, LOW);
       DC_motor_sequence(); //DC motor spins bottle
@@ -125,6 +128,7 @@ void case_handler() {
   if (rasp_com == 'B' && Step != 1 && Step != 2 && Trigger_winch == 2) {
     temp_Step = Step;
     temp_diff = millis() - step_time;
+    Down_winch_time = millis();
     Step = 8;
     Trigger_winch = 0;
   }
@@ -231,7 +235,7 @@ unsigned long spin_time(float temp_cold) {
 
 void DC_motor_sequence() {
   digitalWrite(DCPump, LOW);
-  if (millis() - Dir_time > 3000) {
+  if (millis() - Dir_time > 15000) {
     spin_DIR_val = !spin_DIR_val;
     Dir_time = millis();
   }
@@ -276,8 +280,9 @@ void Winch_func() {
   digitalWrite(DCPump, HIGH);
 
   Serial.println(rasp_com);
-  Serial.println(ultrasonic_listen());
-  if (rasp_com == 'L' && ultrasonic_listen() > 10 && (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 10000 )))){
+//  Serial.println(ultrasonic_listen());
+  if (rasp_com == 'L' && (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 10000)))){// && ultrasonic_listen() > 10)))){
+    Serial.println("here");
     digitalWrite(Winch_lower, HIGH);
     digitalWrite(Winch_raise, LOW);
     if (Trigger_winch == 0) {
@@ -288,7 +293,6 @@ void Winch_func() {
 
   else if (rasp_com == 'R' && read_ind_prox() == HIGH) {
     //    Serial.println("up");
-    Serial.println("here");
     digitalWrite(Winch_lower, LOW);
     digitalWrite(Winch_raise, HIGH);
   }
