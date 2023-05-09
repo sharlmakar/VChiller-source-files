@@ -137,14 +137,14 @@ void loop(){
       
       lcd_print();
        
-      if((T_cold_stor > -3)){
+      if(T_cold_stor > -3){
         Trigger_solenoid = 0;
         digitalWrite(DCPump, HIGH);
         digitalWrite(Vac_pump, LOW);
         digitalWrite(Fan1, LOW);
         Solenoid_op();
         digitalWrite(Dir_val, LOW);
-        Airblow_on();
+        AirBlow_on();
         
         if(T_Rad>35){
           digitalWrite(Fan2, LOW);
