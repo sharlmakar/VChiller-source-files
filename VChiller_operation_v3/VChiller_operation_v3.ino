@@ -326,7 +326,7 @@ void AirBlow_on(){
 void Airblow_off(){
   if(Trigger_AirBlow == 1){
     digitalWrite(AirBlow, LOW);
-    delay(1000);
+    delay(500);
     digitalWrite(AirBlow, HIGH);
     Trigger_AirBlow = 0;
   }
