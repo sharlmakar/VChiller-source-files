@@ -29,9 +29,10 @@ int Step = 0;
 int temp_Step = 0;
 unsigned long step_time = 0;
 unsigned long spining_time = 0;
+unsigned long spin_time_dir = 15000;
 unsigned long Dir_time = 0;
 unsigned long Down_winch_time = 1000000;
-bool spin_DIR_val = LOW;
+bool spin_DIR_val = HIGH;
 
 //String rasp_com;
 char rasp_com;
@@ -49,20 +50,14 @@ void setup() {
   pinMode(ultrasonic_trig, OUTPUT);
   pinMode(ultrasonic_echo, INPUT);
 
-  pinMode(ultrasonic_trig, OUTPUT);
-  pinMode(ultrasonic_echo, OUTPUT);
-
   pinMode(spin_RIGHT, OUTPUT);
   pinMode(spin_LEFT, OUTPUT);
-  //  pinMode(Winch_approv, OUTPUT);
 
   pinMode(Winch_lower, OUTPUT);
   pinMode(Winch_raise, OUTPUT);
 
   digitalWrite(Winch_lower, HIGH);
   digitalWrite(Winch_raise, HIGH);
-
-  //  digitalWrite(Winch_approv, LOW);
 
   pinMode(DCPump, OUTPUT);
   digitalWrite(DCPump, HIGH);
@@ -79,7 +74,7 @@ void setup() {
   analogWrite(spin_LEFT, 0);
 
   Serial.begin(9600);
-  Serial.println("ARD2");
+  Serial.println("ARD1");
 
 }
 
@@ -130,13 +125,16 @@ void case_handler() {
     temp_diff = millis() - step_time;
     Down_winch_time = millis();
     Step = 8;
-    Trigger_winch = 0;
+    Trigger_winch = 0;  
   }
 
-  else if (bott_counter < 10 && digitalRead(ProxIN_cold1) == 1 && digitalRead(ProxIN_cold2) == 1 && Step == 0) { //Initiate sequence
-    Step = 1;
-    bott_counter++;
-    step_time = millis();
+  else if (bott_counter < 10 && Step == 0) { //Initiate sequence
+    Serial.println(ultrasonic_listen());
+    if(ultrasonic_listen() > 5){
+      Step = 1;
+      bott_counter++;
+      step_time = millis();  
+    }
   }
   else if (Step == 1) { //Drop bottle into spinner//Return to receive next bottle
     if (difference > 2000) {
@@ -153,7 +151,7 @@ void case_handler() {
   else if (Step == 3) { //Spinner lock closes
     if (difference > 1000) {
       Step = 4;
-      spining_time = spin_time(temp_read_ntc());
+      spining_time = 600000;
       //      Serial.println(spining_time);
       //      Serial.println(temp_read_ntc());
       Dir_time = millis();
@@ -235,18 +233,26 @@ unsigned long spin_time(float temp_cold) {
 
 void DC_motor_sequence() {
   digitalWrite(DCPump, LOW);
-  if (millis() - Dir_time > 15000) {
+  if (millis() - Dir_time > spin_time_dir) {
     spin_DIR_val = !spin_DIR_val;
+    if(spin_DIR_val == 1){
+      spin_time_dir = 15000;
+    }
+    else{
+      spin_time_dir = 2000;
+    }
     Dir_time = millis();
   }
 
   if (spin_DIR_val == 1) {
+//    Serial.println("1");
     analogWrite(spin_RIGHT, 0);
     analogWrite(spin_LEFT, 255);
   }
 
   else {
-    analogWrite(spin_RIGHT, 255);
+//    Serial.println("2");
+    analogWrite(spin_RIGHT, 0);
     analogWrite(spin_LEFT, 0);
   }
 
@@ -256,7 +262,7 @@ void Spin_shake_sequence() {
 
   digitalWrite(DCPump, HIGH);
 
-  if (millis() - Dir_time > 1500) {
+  if (millis() - Dir_time > 5000) {
     spin_DIR_val = !spin_DIR_val;
     Dir_time = millis();
   }
@@ -282,7 +288,7 @@ void Winch_func() {
   Serial.println(rasp_com);
 //  Serial.println(ultrasonic_listen());
   if (rasp_com == 'L' && (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 10000)))){// && ultrasonic_listen() > 10)))){
-    Serial.println("here");
+//    Serial.println("here");
     digitalWrite(Winch_lower, HIGH);
     digitalWrite(Winch_raise, LOW);
     if (Trigger_winch == 0) {

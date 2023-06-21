@@ -1,43 +1,28 @@
-// ---------------------------------------------------------------- //
-// Arduino Ultrasoninc Sensor HC-SR04
-// Re-writed by Arbi Abdul Jabbaar
-// Using Arduino IDE 1.8.7
-// Using HC-SR04 Module
-// Tested on 17 September 2019
-// ---------------------------------------------------------------- //
-
-#define echoPin 2 // attach pin D2 Arduino to pin Echo of HC-SR04
-#define trigPin 3 //attach pin D3 Arduino to pin Trig of HC-SR04
-
-// defines variables
-unsigned long duration1; // variable for the duration of sound wave travel
-unsigned long duration2;
-int distance; // variable for the distance measurement
+#define trigPin 11
+#define echoPin 12
 
 void setup() {
-  pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
-  pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
-  Serial.begin(9600); // // Serial Communication is starting with 9600 of baudrate speed
-  Serial.println("Ultrasonic Sensor HC-SR04 Test"); // print some text in Serial Monitor
-  Serial.println("with Arduino UNO R3");
+Serial.begin (9600);
+pinMode(trigPin, OUTPUT);
+pinMode(echoPin, INPUT);
 }
-void loop() {
-  // Clears the trigPin condition
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration1 = pulseIn(echoPin, HIGH);
-  delay(1);
-  duration2 = pulseIn(echoPin, HIGH);
-  // Calculating the distance
-  distance = duration2 * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
-  // Displays the distance on the Serial Monitor
-  Serial.print("Distance: ");
-  Serial.print(distance);
-  Serial.println(" cm");
 
+void loop() {
+long duration, distance;
+digitalWrite(trigPin, LOW);
+delayMicroseconds(2);
+digitalWrite(trigPin, HIGH);
+delayMicroseconds(10);
+digitalWrite(trigPin, LOW);
+duration = pulseIn(echoPin, HIGH);
+distance = (duration/2) / 29.1;
+
+if (distance >= 2000 ) {
+Serial.println("Out of range");
+}
+else {
+Serial.print(distance);
+Serial.println(" cm");
+}
+delay(500);
 }

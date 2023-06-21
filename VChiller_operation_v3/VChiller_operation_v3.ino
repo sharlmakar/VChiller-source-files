@@ -67,7 +67,12 @@ void setup() {
 
   Serial.begin(9600);
   Serial.println("Ard5");
-
+  
+  Temp_VC.begin();
+  Temp_Water.begin();
+  Temp_Rad.begin();
+  Temp_cold_stor.begin();
+  
   Readings(); //Initial readings
   
   print_time = millis();
@@ -96,6 +101,10 @@ void loop(){
   
     Serial.print("Set Temperature: ");
     Serial.print(set_T);
+    Serial.println(" C");
+
+    Serial.print("Cold storage Temperature: ");
+    Serial.print(T_cold_stor);
     Serial.println(" C");
 
     Serial.println();
@@ -199,10 +208,11 @@ void Readings(){ //Cycle readings
 //  T_cold_stor = temp_read_ntc(Temp_cold_stor_p);
   
   Vpot = analogRead(PotPin); //Set temperature inital reading
-  set_T = mapfloat(Vpot, 1023, 0, -10, 20);
+  set_T = mapfloat(Vpot, 1023, 0, -15, 30);
 
   T_VC = GetTemp(Temp_VC, T_VC);    //Temperature sensor readings
   T_Water = GetTemp(Temp_Water, T_Water);
+  delay(500);
   T_Rad = GetTemp(Temp_Rad, T_Rad);
   T_cold_stor = GetTemp(Temp_cold_stor, T_cold_stor);
   
@@ -302,7 +312,10 @@ float GetTemp(DallasTemperature temp, float reading0){
   temp.requestTemperatures();
   delay(25);
   reading2 = temp.getTempCByIndex(0);
-  if ((floor(reading1) == floor(reading2)) && (reading1 != 85 && reading2 != 85)){ //&& reading1 != -127 && reading2 != -127)){
+  if(reading1 == -127 && reading2 == -127){
+    temp.begin();
+  }
+  if ((floor(reading1) == floor(reading2)) && (reading1 != 85 && reading2 != 85) || reading1 != -127){ //&& reading1 != -127 && reading2 != -127)){
     return reading2;
   }
   else{
