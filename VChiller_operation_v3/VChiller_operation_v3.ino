@@ -13,7 +13,7 @@
 #define AirBlow 8
 
 #define Temp_VC_p 15
-#define Temp_Water_p 6
+#define Temp_Water_p 2Z
 #define Temp_Rad_p 5
 #define Temp_cold_stor_p 4
 #define Dir_val 3
@@ -124,7 +124,7 @@ void loop(){
 
   if(Trigger_hot == 0){
     
-    if(T_Water > (set_T + 2)){
+    if(T_Water > (set_T + 2) && T_VC > 0){
       Trigger_solenoid = 0;
       
       if(T_Rad>35){
@@ -142,7 +142,7 @@ void loop(){
       Solenoid_op();
     }
 
-    else if(T_Water<set_T){
+    else if(T_Water<set_T || T_VC < -0.5){
       
       lcd_print();
        

@@ -74,7 +74,7 @@ void setup() {
   analogWrite(spin_LEFT, 0);
 
   Serial.begin(9600);
-  Serial.println("ARD1");
+  Serial.println("ARD4");
 
 }
 
@@ -128,7 +128,7 @@ void case_handler() {
     Trigger_winch = 0;  
   }
 
-  else if (bott_counter < 10 && Step == 0) { //Initiate sequence
+  else if (bott_counter < 10 && Step == 0 && read_ind_prox() == LOW) { //Initiate sequence
     Serial.println(ultrasonic_listen());
     if(ultrasonic_listen() > 5){
       Step = 1;
@@ -136,13 +136,13 @@ void case_handler() {
       step_time = millis();  
     }
   }
-  else if (Step == 1) { //Drop bottle into spinner//Return to receive next bottle
+  else if (Step == 1 && read_ind_prox() == LOW) { //Drop bottle into spinner//Return to receive next bottle
     if (difference > 2000) {
       Step = 2;
       step_time = millis();
     }
   }
-  else if (Step == 2) { //Return to receive next bottle
+  else if (Step == 2 && read_ind_prox() == LOW) { //Return to receive next bottle
     if (difference > 3000) {
       Step = 3;
       step_time = millis();
@@ -287,7 +287,7 @@ void Winch_func() {
 
   Serial.println(rasp_com);
 //  Serial.println(ultrasonic_listen());
-  if (rasp_com == 'L' && (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 10000)))){// && ultrasonic_listen() > 10)))){
+  if (rasp_com == 'L' && (Trigger_winch == 0 || (Trigger_winch == 1 && ((millis()-Down_winch_time) < 25000)))){// && ultrasonic_listen() > 10)))){
 //    Serial.println("here");
     digitalWrite(Winch_lower, HIGH);
     digitalWrite(Winch_raise, LOW);
