@@ -13,7 +13,7 @@
 #define AirBlow 8
 
 #define Temp_VC_p 15
-#define Temp_Water_p 2Z
+#define Temp_Water_p 2
 #define Temp_Rad_p 5
 #define Temp_cold_stor_p 4
 #define Dir_val 3
@@ -28,8 +28,11 @@ unsigned long Time;
 unsigned long Sol_open_time;
 unsigned long Sol_interv_time;
 unsigned long print_time, lcd_time;
+unsigned long Airblow_time;
 int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB, Trigger_AirBlow  = 0;
 int TriggerSol_open = 1;
+
+char rasp_com;
 
 OneWire oneWire1(Temp_VC_p);
 OneWire oneWire2(Temp_Water_p );
@@ -84,7 +87,21 @@ void setup() {
 }
 
 void loop(){
+  read_Serial();
 
+  if(rasp_com == "E"){
+    digitalWrite(Solenoid, LOW);
+    delay(2000);
+    digitalWrite(Vac_pump, HIGH);
+    delay(7000);
+    digitalWrite(Solenoid, HIGH);
+    digitalWrite(DCPump, HIGH);
+    digitalWrite(AirBlow, LOW);
+    digitalWrite(Fan1, LOW);
+    digitalWrite(Fan2, LOW);
+    
+  }
+  
   Time = millis();
   Readings(); //Readings done at the beginning of every loop
 
@@ -131,7 +148,7 @@ void loop(){
         digitalWrite(Fan2, LOW);
       }
       
-      else if(T_Rad<33){
+      else if(T_Rad<30){
         digitalWrite(Fan2, HIGH);
       }
       digitalWrite(Fan1, LOW);
@@ -142,7 +159,7 @@ void loop(){
       Solenoid_op();
     }
 
-    else if(T_Water<set_T || T_VC < -0.5){
+    else if(T_Water<set_T){
       
       lcd_print();
        
@@ -154,6 +171,13 @@ void loop(){
         Solenoid_op();
         digitalWrite(Dir_val, LOW);
         AirBlow_on();
+
+        if((millis() - Airblow_time) > 300000){
+          Airblow_off();
+        }
+        digitalWrite(Vac_pump, HIGH);
+        digitalWrite(Fan1, HIGH);
+        digitalWrite(Dir_val, HIGH);
         
         if(T_Rad>35){
           digitalWrite(Fan2, LOW);
@@ -227,7 +251,7 @@ void Solenoid_op(){
     Sol_open_time = millis();
   }
 
-  else if(((Time - Sol_open_time) > 7000) && (TriggerSol_open == 0)){
+  else if(((Time - Sol_open_time) > 5000) && (TriggerSol_open == 0)){
     digitalWrite(Solenoid, HIGH);
     Sol_interv_time = millis();
     TriggerSol_open = 1;
@@ -332,6 +356,7 @@ void AirBlow_on(){
     digitalWrite(AirBlow, LOW);
     delay(1500);
     digitalWrite(AirBlow, HIGH);
+    Airblow_time = millis();
     Trigger_AirBlow = 1;
   }
 }
@@ -342,5 +367,18 @@ void Airblow_off(){
     delay(500);
     digitalWrite(AirBlow, HIGH);
     Trigger_AirBlow = 0;
+  }
+}
+
+void read_Serial() {
+  char temp_rasp_com = '\n';
+  if (Serial.available()) {
+    temp_rasp_com = Serial.read();
+  }
+  if(rasp_com == "E"){
+    return;
+  }
+  if (temp_rasp_com != '\n') {
+    rasp_com = temp_rasp_com;
   }
 }

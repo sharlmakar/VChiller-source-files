@@ -10,10 +10,10 @@
 #define Out4 6
 
 void setup() {
-  pinMode(In1, INPUT);
-  pinMode(In2, INPUT);
-  pinMode(In3, INPUT);
-  pinMode(In4, INPUT);
+  pinMode(In1, INPUT_PULLUP);
+  pinMode(In2, INPUT_PULLUP);
+  pinMode(In3, INPUT_PULLUP);
+  pinMode(In4, INPUT_PULLUP);
 
   pinMode(Out1, OUTPUT);
   pinMode(Out2, OUTPUT);

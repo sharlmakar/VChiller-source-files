@@ -74,7 +74,8 @@ void setup() {
   analogWrite(spin_LEFT, 0);
 
   Serial.begin(9600);
-  Serial.println("ARD4");
+  Serial.println("ARD3");
+  delay(5000);
 
 }
 
@@ -338,9 +339,11 @@ void read_Serial() {
   char temp_rasp_com = '\n';
   if (Serial.available()) {
     temp_rasp_com = Serial.read();
-  }
-  if (temp_rasp_com != '\n') {
-    rasp_com = temp_rasp_com;
+    if (temp_rasp_com != '\n') {
+      rasp_com = temp_rasp_com;
+      Serial.print("ACK:");
+      Serial.println(rasp_com);
+    }
   }
 }
 
