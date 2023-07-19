@@ -29,7 +29,7 @@ unsigned long Sol_open_time;
 unsigned long Sol_interv_time;
 unsigned long print_time, lcd_time;
 unsigned long Airblow_time;
-int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB, Trigger_AirBlow  = 0;
+int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB, Trigger_AirBlow, Trigger_cold  = 0;
 int TriggerSol_open = 1;
 
 char rasp_com;
@@ -127,10 +127,6 @@ void loop(){
     Serial.println();
   }
   lcd_print();
-//  if((Time - lcd_time)>1000){ //Refresh LCD every sec
-//    lcd_time = millis();
-//    lcd_print();  
-//  }
 
   if(T_Rad > 80 && T_Rad != 85.00 && Trigger_hot != 2){
     Trigger_hot = 1;
@@ -143,6 +139,7 @@ void loop(){
     
     if(T_Water > (set_T + 2) && T_VC > 0){
       Trigger_solenoid = 0;
+      Trigger_cold = 0;
       
       if(T_Rad>35){
         digitalWrite(Fan2, LOW);
@@ -165,19 +162,24 @@ void loop(){
        
       if(T_cold_stor > -3){
         Trigger_solenoid = 0;
-        digitalWrite(DCPump, HIGH);
-        digitalWrite(Vac_pump, LOW);
-        digitalWrite(Fan1, LOW);
-        Solenoid_op();
-        digitalWrite(Dir_val, LOW);
-        AirBlow_on();
-
-        if((millis() - Airblow_time) > 300000){
-          Airblow_off();
+        if(Trigger_cold == 0){
+          digitalWrite(DCPump, HIGH);
+          digitalWrite(Vac_pump, LOW);
+          digitalWrite(Fan1, LOW);
+          Solenoid_op();
+          digitalWrite(Dir_val, LOW);
+          AirBlow_on();
+  
+          if((millis() - Airblow_time) > 300000){
+            Airblow_off();
+            Trigger_cold = 1;
+          }
         }
-        digitalWrite(Vac_pump, HIGH);
-        digitalWrite(Fan1, HIGH);
-        digitalWrite(Dir_val, HIGH);
+        else{
+          digitalWrite(Vac_pump, HIGH);
+          digitalWrite(Fan1, HIGH);
+          digitalWrite(Dir_val, HIGH);
+        }
         
         if(T_Rad>35){
           digitalWrite(Fan2, LOW);
@@ -378,7 +380,7 @@ void read_Serial() {
   if(rasp_com == "E"){
     return;
   }
-  if (temp_rasp_com != '\n') {
+  else if (temp_rasp_com != '\n') {
     rasp_com = temp_rasp_com;
   }
 }
