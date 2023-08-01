@@ -13,9 +13,9 @@ void setup() {
 void loop() {
   servo_motor.write(180);
   
-  delay(2000);
+  delay(10000);
   
   servo_motor.write(0);
   
-  delay(2000);
+  delay(10000);
 }

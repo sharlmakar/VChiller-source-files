@@ -1,5 +1,3 @@
-//Check if the relays
-
 #include <OneWire.h>
 #include <DallasTemperature.h> //For temperature sensors
 #include <Wire.h> // For I2C
@@ -69,7 +67,7 @@ void setup() {
   lcd.home ();
 
   Serial.begin(9600);
-  Serial.println("Ard5");
+  Serial.println("ARD5");
   
   Temp_VC.begin();
   Temp_Water.begin();
@@ -137,7 +135,7 @@ void loop(){
 
   if(Trigger_hot == 0){
     
-    if(T_Water > (set_T + 2) && T_VC > 0){
+    if(T_Water > (set_T + 2)){
       Trigger_solenoid = 0;
       Trigger_cold = 0;
       
@@ -150,7 +148,13 @@ void loop(){
       }
       digitalWrite(Fan1, LOW);
       digitalWrite(DCPump, LOW);
-      digitalWrite(Vac_pump, LOW);
+      if(T_VC > 1){
+        digitalWrite(Vac_pump, LOW); 
+      }
+
+      else if(T_VC < 0 && T_VC != -127){
+        digitalWrite(Vac_pump, HIGH);
+      }
       digitalWrite(Dir_val, HIGH);
       Airblow_off();
       Solenoid_op();
@@ -218,7 +222,7 @@ void loop(){
     delay(10000);
     digitalWrite(Solenoid, HIGH);
     digitalWrite(DCPump, HIGH);
-    digitalWrite(AirBlow, LOW);
+    digitalWrite(AirBlow, HIGH);
     digitalWrite(Fan1, LOW);
     digitalWrite(Fan2, LOW);
     
@@ -233,8 +237,8 @@ void Readings(){ //Cycle readings
 //  T_Rad = temp_read_ntc(Temp_Rad_p);
 //  T_cold_stor = temp_read_ntc(Temp_cold_stor_p);
   
-  Vpot = analogRead(PotPin); //Set temperature inital reading
-  set_T = mapfloat(Vpot, 1023, 0, -15, 30);
+//  Vpot = analogRead(PotPin); //Set temperature inital reading
+  set_T = 1.5;  //mapfloat(Vpot, 1023, 0, -15, 30);
 
   T_VC = GetTemp(Temp_VC, T_VC);    //Temperature sensor readings
   T_Water = GetTemp(Temp_Water, T_Water);
