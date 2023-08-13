@@ -27,7 +27,7 @@ unsigned long Sol_open_time;
 unsigned long Sol_interv_time;
 unsigned long print_time, lcd_time;
 unsigned long Airblow_time;
-int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB, Trigger_AirBlow, Trigger_cold  = 0;
+int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB, Trigger_AirBlow, Trigger_cold, Trigger_pump = 0;
 int TriggerSol_open = 1;
 
 char rasp_com;
@@ -149,11 +149,19 @@ void loop(){
       digitalWrite(Fan1, LOW);
       digitalWrite(DCPump, LOW);
       if(T_VC > 1){
+        Trigger_pump = 0;
         digitalWrite(Vac_pump, LOW); 
       }
 
       else if(T_VC < 0 && T_VC != -127){
-        digitalWrite(Vac_pump, HIGH);
+        if(Trigger_pump == 0){
+          digitalWrite(Solenoid, LOW);
+          delay(2000);
+          digitalWrite(Vac_pump, HIGH);
+          delay(7000);
+          digitalWrite(Solenoid, HIGH);
+          Trigger_pump = 1;
+        }
       }
       digitalWrite(Dir_val, HIGH);
       Airblow_off();
@@ -180,6 +188,14 @@ void loop(){
           }
         }
         else{
+          if(Trigger_cold == 1){
+            digitalWrite(Solenoid, LOW);
+            delay(2000);
+            digitalWrite(Vac_pump, HIGH);
+            delay(7000);
+            digitalWrite(Solenoid, HIGH);
+            Trigger_cold = 2;
+          }
           digitalWrite(Vac_pump, HIGH);
           digitalWrite(Fan1, HIGH);
           digitalWrite(Dir_val, HIGH);
