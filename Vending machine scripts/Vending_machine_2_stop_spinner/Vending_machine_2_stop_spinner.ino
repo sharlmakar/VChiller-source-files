@@ -76,7 +76,7 @@ void setup() {
   analogWrite(spin_LEFT, 0);
 
   Serial.begin(9600);
-  Serial.println("ARD1");
+  Serial.println("ARD4");
   delay(5000);
 
 }
@@ -143,7 +143,7 @@ void case_handler() {
     Trigger_winch = 0;
   }
 
-  else if (bott_counter < 10 && Step == 0 && read_ind_prox() == LOW && temp_read_ntc() < 5) { //Initiate sequence
+  else if (bott_counter < 10 && Step == 0 && read_ind_prox() == LOW && temp_read_ntc() < -1) { //Initiate sequence
     Serial.println("here I started");
     if (ultrasonic_listen() > 5) {
       Step = 1;
@@ -176,7 +176,7 @@ void case_handler() {
   }
   else if (Step == 4) { //DC motor spins bottle
     //    Serial.println(millis() - step_time);
-    if(temp_read_ntc() < 4){
+    if(temp_read_ntc() < -1){
       if (millis() - step_time > spining_time) {
         Step = 5;
         step_time = millis();
@@ -184,7 +184,7 @@ void case_handler() {
       }
       temp_time = 60000 - millis() - step_time;
     }
-    else if(temp_read_ntc() > 5){
+    else if(temp_read_ntc() > 0){
       spining_time = 600000 + temp_time;
     }
     
@@ -261,7 +261,7 @@ unsigned long spin_time(float temp_cold) {
 
 void DC_motor_sequence() {
     
-  if(temp_read_ntc() < 4){
+  if(temp_read_ntc() < -1){
     if (millis() - Dir_time > spin_time_dir) {
       spin_DIR_val = !spin_DIR_val;
       if (spin_DIR_val == 1) {
@@ -287,7 +287,7 @@ void DC_motor_sequence() {
     digitalWrite(DCPump, LOW);
   }
 
-  else if(temp_read_ntc() > 5){
+  else if(temp_read_ntc() > 0){
     analogWrite(spin_RIGHT, 0);
     analogWrite(spin_LEFT, 0);
     digitalWrite(DCPump, HIGH);

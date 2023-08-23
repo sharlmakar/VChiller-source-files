@@ -227,6 +227,23 @@ void loop(){
         Airblow_off();
       }
     }
+    else{
+      if(T_VC > 1){
+        Trigger_pump = 0;
+        digitalWrite(Vac_pump, LOW); 
+      }
+
+      else if(T_VC < 0 && T_VC != -127){
+        if(Trigger_pump == 0){
+          digitalWrite(Solenoid, LOW);
+          delay(2000);
+          digitalWrite(Vac_pump, HIGH);
+          delay(7000);
+          digitalWrite(Solenoid, HIGH);
+          Trigger_pump = 1;
+        }
+      }
+    }
   }
   
   else if (Trigger_hot == 1){
