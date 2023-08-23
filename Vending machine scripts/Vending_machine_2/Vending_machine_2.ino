@@ -165,7 +165,7 @@ void case_handler() {
   else if (Step == 3) { //Spinner lock closes
     if (difference > 1000) {
       Step = 4;
-      spining_time = 600000;
+      spining_time = 900000;
       //      Serial.println(spining_time);
       //      Serial.println(temp_read_ntc());
       Dir_time = millis();
@@ -253,10 +253,10 @@ void DC_motor_sequence() {
   if (millis() - Dir_time > spin_time_dir) {
     spin_DIR_val = !spin_DIR_val;
     if (spin_DIR_val == 1) {
-      spin_time_dir = 15000;
+      spin_time_dir = 60000;
     }
     else {
-      spin_time_dir = 2000;
+      spin_time_dir = 60000;
     }
     Dir_time = millis();
   }
@@ -265,14 +265,16 @@ void DC_motor_sequence() {
     //    Serial.println("1");
     analogWrite(spin_RIGHT, 0);
     analogWrite(spin_LEFT, 255);
+    digitalWrite(DCPump, LOW);
   }
 
   else {
     //      Serial.println("2");
     analogWrite(spin_RIGHT, 0);
     analogWrite(spin_LEFT, 0);
+    digitalWrite(DCPump, HIGH);
   }
-  digitalWrite(DCPump, LOW);
+  
 }
 
 void Spin_shake_sequence() {
