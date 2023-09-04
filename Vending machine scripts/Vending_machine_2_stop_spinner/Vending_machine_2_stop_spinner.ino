@@ -265,10 +265,10 @@ void DC_motor_sequence() {
     if (millis() - Dir_time > spin_time_dir) {
       spin_DIR_val = !spin_DIR_val;
       if (spin_DIR_val == 1) {
-        spin_time_dir = 15000;
+        spin_time_dir = 60000;
       }
       else {
-        spin_time_dir = 2000;
+        spin_time_dir = 60000;
       }
       Dir_time = millis();
     }

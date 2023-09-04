@@ -30,7 +30,7 @@ int servo1_angle = 0;
 int servo2_angle = 180;
 unsigned long step_time = 0;
 unsigned long spining_time = 0;
-unsigned long spin_time_dir = 15000;
+unsigned long spin_time_dir = 90000;
 unsigned long Dir_time = 0;
 unsigned long Down_winch_time = 1000000;
 bool spin_DIR_val = HIGH;
@@ -133,7 +133,9 @@ void loop() {
 void case_handler() {
   
   difference = millis() - step_time;
-//  Serial.println(temp_read_ntc());
+  Serial.println(temp_read_ntc());
+//  Serial.print("Induction prox: ");
+//  Serial.println(read_ind_prox());
 
   if (rasp_com == 'B' && Step != 1 && Step != 2 && Trigger_winch == 2) {
     temp_Step = Step;
@@ -143,7 +145,7 @@ void case_handler() {
     Trigger_winch = 0;
   }
 
-  else if (bott_counter < 10 && Step == 0 && read_ind_prox() == LOW && temp_read_ntc() < 4) { //Initiate sequence
+  else if (bott_counter < 10 && Step == 0 && read_ind_prox() == LOW && temp_read_ntc() < 0.75) { //Initiate sequence
     if (ultrasonic_listen() > 5) {
       Step = 1;
       bott_counter++;
@@ -188,7 +190,6 @@ void case_handler() {
   }
   else if (Step == 6) { //Lock on spinner drops bottle to cold storage
     if (difference > 2000) {
-      Serial.println("I am on step 7");
       Step = 7;
     }
   }
@@ -207,8 +208,6 @@ float temp_read_ntc() {
   float R1 = 10000;
   float logR2, R2, T;
   float c1 = 1.009249522e-03, c2 = 2.378405444e-04, c3 = 2.019202697e-07;
-  float beta = 3950;
-
 
   while (Vo != V1) {
     Vo = analogRead(Temp_pin);
@@ -253,10 +252,10 @@ void DC_motor_sequence() {
   if (millis() - Dir_time > spin_time_dir) {
     spin_DIR_val = !spin_DIR_val;
     if (spin_DIR_val == 1) {
-      spin_time_dir = 60000;
+      spin_time_dir = 90000;
     }
     else {
-      spin_time_dir = 60000;
+      spin_time_dir = 30000;
     }
     Dir_time = millis();
   }
