@@ -27,6 +27,7 @@ unsigned long Sol_open_time;
 unsigned long Sol_interv_time;
 unsigned long print_time, lcd_time;
 unsigned long Airblow_time;
+unsigned long reset_time;
 int TriggerSol_interv, Trigger_hot, Trigger_solenoid, Trigger_AB, Trigger_AirBlow, Trigger_cold, Trigger_pump = 0;
 int TriggerSol_open = 1;
 
@@ -78,13 +79,19 @@ void setup() {
   
   print_time = millis();
   lcd_time = millis();
+  reset_time = millis();
 
-  lcd_print(); 
+  lcd_print();
   
   
 }
 
 void loop(){
+
+  if(millis() - reset_time > 1200000){ //Reset Arduino every 20 minutes
+    resetFunc();  //call reset
+  }
+  
   read_Serial();
 
   if(rasp_com == "E"){
@@ -280,6 +287,8 @@ void Readings(){ //Cycle readings
   T_cold_stor = GetTemp(Temp_cold_stor, T_cold_stor);
   
 }
+
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void Solenoid_op(){
   if(TriggerSol_interv == 0){
