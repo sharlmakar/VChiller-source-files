@@ -42,7 +42,7 @@ DallasTemperature Temp_Water(&oneWire2);
 DallasTemperature Temp_Rad(&oneWire3);
 DallasTemperature Temp_cold_stor(&oneWire4);
 
-LiquidCrystal_I2C lcd(0x27,20, 4);
+LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
 
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
@@ -65,7 +65,8 @@ void setup() {
   digitalWrite(Dir_val, HIGH);
   
   lcd.begin (20,4); // 20 x 4 LCD module
-  lcd.backlight(); // BL, BL_POL
+  lcd.setBacklightPin(3,POSITIVE); // BL, BL_POL
+  lcd.setBacklight(HIGH);
   lcd.home ();
 
   Serial.begin(9600);
