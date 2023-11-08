@@ -42,7 +42,9 @@ DallasTemperature Temp_Water(&oneWire2);
 DallasTemperature Temp_Rad(&oneWire3);
 DallasTemperature Temp_cold_stor(&oneWire4);
 
-LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7);
+LiquidCrystal_I2C lcd(0x27,20, 4);
+
+void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void setup() {
 
@@ -63,8 +65,7 @@ void setup() {
   digitalWrite(Dir_val, HIGH);
   
   lcd.begin (20,4); // 20 x 4 LCD module
-  lcd.setBacklightPin(3,POSITIVE); // BL, BL_POL
-  lcd.setBacklight(HIGH);
+  lcd.backlight(); // BL, BL_POL
   lcd.home ();
 
   Serial.begin(9600);
@@ -287,8 +288,6 @@ void Readings(){ //Cycle readings
   T_cold_stor = GetTemp(Temp_cold_stor, T_cold_stor);
   
 }
-
-void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 void Solenoid_op(){
   if(TriggerSol_interv == 0){
