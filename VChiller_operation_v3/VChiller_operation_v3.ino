@@ -180,60 +180,24 @@ void loop(){
     else if(T_Water<set_T){
       
       lcd_print();
-       
-      if(T_cold_stor > -3){
-        Trigger_solenoid = 0;
-        if(Trigger_cold == 0){
-          digitalWrite(DCPump, HIGH);
-          digitalWrite(Vac_pump, LOW);
-          digitalWrite(Fan1, LOW);
-          Solenoid_op();
-          digitalWrite(Dir_val, LOW);
-          AirBlow_on();
-  
-          if((millis() - Airblow_time) > 300000){
-            Airblow_off();
-            Trigger_cold = 1;
-          }
-        }
-        else{
-          if(Trigger_cold == 1){
-            digitalWrite(Solenoid, LOW);
-            delay(2000);
-            digitalWrite(Vac_pump, HIGH);
-            delay(7000);
-            digitalWrite(Solenoid, HIGH);
-            Trigger_cold = 2;
-          }
-          digitalWrite(Vac_pump, HIGH);
-          digitalWrite(Fan1, HIGH);
-          digitalWrite(Dir_val, HIGH);
-        }
-        
-        if(T_Rad>35){
-          digitalWrite(Fan2, LOW);
-        }
-        
-        else if(T_Rad<33){
-          digitalWrite(Fan2, HIGH);
-        }
-      }
-
-      else if(T_cold_stor <= -5){
-        TriggerSol_interv = 0;
-        if(Trigger_solenoid == 0){
-          Trigger_solenoid = 1;
+      if(Trigger_cold == 1){
           digitalWrite(Solenoid, LOW);
           delay(2000);
           digitalWrite(Vac_pump, HIGH);
           delay(7000);
           digitalWrite(Solenoid, HIGH);
-        }
-        digitalWrite(DCPump, HIGH);
-        digitalWrite(Fan1, HIGH);
+          Trigger_cold = 2;
+      }
+      digitalWrite(Vac_pump, HIGH);
+      digitalWrite(Fan1, HIGH);
+      digitalWrite(Dir_val, HIGH);
+        
+      if(T_Rad>35){
+        digitalWrite(Fan2, LOW);
+      }
+      
+      else if(T_Rad<33){
         digitalWrite(Fan2, HIGH);
-        digitalWrite(Dir_val, HIGH);
-        Airblow_off();
       }
     }
     else{
